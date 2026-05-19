@@ -64,6 +64,9 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "website",
             "address",
             "subscription_plan",
+            "chat_name",
+            "greeting_message",
+            "chat_language",
         )
         extra_kwargs = {
             "name": {"required": False},
@@ -73,4 +76,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "address": {"required": False, "allow_blank": True},
             "logo": {"required": False, "allow_null": True},
             "subscription_plan": {"required": False},
+            "chat_name": {"required": False},
+            "greeting_message": {"required": False},
+            "chat_language": {"required": False, "allow_blank": True},
         }

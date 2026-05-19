@@ -16,20 +16,27 @@ FALLBACK_ANSWER = "I don't know, you'll be connected to an operator."
 def answer_question(question: str, owner_user, company_profile) -> dict:
     """
     RAG pipeline:
-      1. Embed the question via OpenAI Embeddings (LangChain).
-      2. Search pgvector for the most similar chunks owned by `owner_user`.
-      3. If nothing passes the similarity threshold → return fallback.
-      4. Build a prompt with the retrieved context and invoke the LLM (LangChain).
-      5. Return {"answer": str, "sources": [{"document_id": int, "title": str}, ...]}.
+      1. Resolve company chat settings (must happen before any early return).
+      2. Embed the question via OpenAI Embeddings (LangChain).
+      3. Search pgvector for the most similar chunks owned by `owner_user`.
+      4. If nothing passes the similarity threshold → return fallback (translated
+         via LLM when chat_language is set, otherwise hardcoded English).
+      5. Build a prompt with the retrieved context and invoke the LLM (LangChain).
+      6. Return {"answer": str, "sources": [{"document_id": int, "title": str}, ...]}.
     """
-    # 1. Embed the question
+    # 1. Resolve company chat settings up front so every code path can use them
+    chat_name = getattr(company_profile, "chat_name", "AI Assistant") if company_profile else "AI Assistant"
+    chat_language = getattr(company_profile, "chat_language", "") if company_profile else ""
+    lang_instruction = f"Always respond in {chat_language}." if chat_language else ""
+
+    # 2. Embed the question
     embeddings = OpenAIEmbeddings(
         api_key=settings.OPENAI_API_KEY,
         model=settings.OPENAI_EMBEDDING_MODEL,
     )
     query_vector = embeddings.embed_query(question)
 
-    # 2. pgvector similarity search (cosine distance)
+    # 3. pgvector similarity search (cosine distance)
     chunks = list(
         KnowledgeChunk.objects.filter(
             document__owner=owner_user,
@@ -41,16 +48,37 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
         .select_related("document")[: settings.CHAT_TOP_K]
     )
 
-    # 3. Fallback when no relevant context was found
+    # 4. Fallback when no relevant context was found
     if not chunks:
         logger.debug(
             "No relevant chunks found for question %r (owner=%s). Returning fallback.",
             question,
             owner_user.pk,
         )
-        return {"answer": FALLBACK_ANSWER, "sources": []}
+        if not lang_instruction:
+            return {"answer": FALLBACK_ANSWER, "sources": []}
 
-    # 4. Build context string and deduplicated source list
+        # Translate the fallback message through the LLM so it respects chat_language
+        fallback_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", f"You are a helpful assistant named {chat_name}. {lang_instruction}"),
+                (
+                    "human",
+                    "You have no relevant information to answer the user's question. "
+                    "In one sentence, politely tell the user you don't know and that "
+                    "they will be connected to a human operator.",
+                ),
+            ]
+        )
+        fallback_llm = ChatOpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            model=settings.OPENAI_CHAT_MODEL,
+            temperature=0,
+        )
+        fallback_answer = (fallback_prompt | fallback_llm | StrOutputParser()).invoke({})
+        return {"answer": fallback_answer, "sources": []}
+
+    # 5. Build context string and deduplicated source list
     context = "\n\n".join(chunk.content for chunk in chunks)
     seen: dict[int, str] = {}
     for chunk in chunks:
@@ -58,12 +86,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             seen[chunk.document_id] = chunk.document.title
     sources = [{"document_id": doc_id, "title": title} for doc_id, title in seen.items()]
 
-    # 5. Build prompt — inject company chat settings
-    chat_name = getattr(company_profile, "chat_name", "AI Assistant") if company_profile else "AI Assistant"
-    chat_language = getattr(company_profile, "chat_language", "") if company_profile else ""
-
-    lang_instruction = f"Always respond in {chat_language}." if chat_language else ""
-
+    # 6. Build prompt — inject company chat settings
     system_prompt = (
         f"You are a helpful assistant named {chat_name}. "
         "Answer the user's question based only on the provided context. "
