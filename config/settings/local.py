@@ -5,7 +5,11 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-development-key-!
 ALLOWED_HOSTS =  env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1","192.168.1.90", 'juniper-fester-married.ngrok-free.dev', '156.67.24.4'])  # nosec B104
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=['https://juniper-fester-married.ngrok-free.dev', "http://156.67.24.4:8080"])
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Mailpit — catches all outgoing email in local Docker env
+# Web UI: http://localhost:8025
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "mailpit"   # Docker service name
+EMAIL_PORT = 1025
  
 CACHES = {
     "default": {
