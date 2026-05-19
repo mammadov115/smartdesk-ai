@@ -62,7 +62,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "subscription_plan",
         )
         extra_kwargs = {
-            "name": {"required": False, "allow_blank": True},
+            "name": {"required": False},
             "contact_email": {"required": False, "allow_blank": True},
             "phone_number": {"required": False, "allow_blank": True},
             "website": {"required": False, "allow_blank": True},

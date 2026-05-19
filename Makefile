@@ -71,13 +71,13 @@ django-shell: ## Open Django shell
 	$(MANAGE) shell
 
 django-migrate: ## Run migrations
-	$(MANAGE) migrate
+	$(MANAGE) migrate --settings=config.settings.local
 
-django-migrations: ## Create new migrations
-	$(MANAGE) makemigrations
+django-makemigrations: ## Create new migrations
+	$(MANAGE) makemigrations --settings=config.settings.local
 
 django-check-migrations: ## Check for missing migrations
-	$(MANAGE) makemigrations --check --dry-run
+	$(MANAGE) makemigrations --settings=config.settings.local --check --dry-run
 
 django-check-migrations-ci: ## Check for missing migrations (CI mode)
 	$(MANAGE_CI) makemigrations --check --dry-run
@@ -86,8 +86,8 @@ django-seed: ## Seed database for local development
 	$(MANAGE) seed --users 50 --questions 50 --categories 5
 
 django-initadmin: ## Create superuser with default credentials (local only)
-	$(DC) exec -e DJANGO_SUPERUSER_PASSWORD=admin web \
-		python manage.py createsuperuser --noinput --username admin
+	$(MANAGE) createsuperuser --settings=config.settings.local
+
 
 django-runserver: ## Run server
 	$(MANAGE) runserver

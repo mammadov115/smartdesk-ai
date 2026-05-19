@@ -6,6 +6,7 @@ from django.urls import reverse_lazy  # noqa: E402
 from django.utils.translation import gettext_lazy as _  # noqa: E402
 
 UNFOLD = {
+    "DASHBOARD_CALLBACK": "apps.accounts.dashboard.dashboard_callback",
     "SITE_TITLE": "Smartdesk-ai",
     "SITE_HEADER": "Smartdesk-ai",
     "SITE_SUBHEADER": _("Administration"),
@@ -72,7 +73,7 @@ UNFOLD = {
                     {
                         "title": _("Users"),
                         "icon": "person",
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:accounts_user_changelist"),
                     },
                     {
                         "title": _("Groups"),

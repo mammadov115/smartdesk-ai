@@ -1,0 +1,136 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex flex-col gap-8 py-6">
+
+  {# ── KPI Cards ─────────────────────────────────────────── #}
+  <section>
+    <h2 class="mb-4 text-xs font-semibold uppercase tracking-wider text-base-500 dark:text-base-400">
+      {% trans "Overview" %}
+    </h2>
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+      {% for kpi in kpis %}
+      <div class="flex flex-col gap-4 rounded-default border border-base-200 bg-white p-5 dark:border-base-800 dark:bg-base-900">
+        <div class="flex items-start justify-between">
+          <span class="text-xs font-medium uppercase tracking-wide text-base-500 dark:text-base-400">
+            {{ kpi.title }}
+          </span>
+          <span class="material-symbols-outlined text-lg leading-none text-primary-500">{{ kpi.icon }}</span>
+        </div>
+        <div class="text-3xl font-bold text-base-900 dark:text-base-100">{{ kpi.metric }}</div>
+        <div class="text-xs text-base-400 dark:text-base-500">{{ kpi.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ── Bottom Row ────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    {# Recent Signups table #}
+    <div class="overflow-hidden rounded-default border border-base-200 bg-base-50 dark:border-base-800 dark:bg-base-800 lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-base-200 px-6 py-4 dark:border-base-700">
+        <h3 class="text-sm font-semibold text-base-900 dark:text-base-100">{% trans "Recent Signups" %}</h3>
+        <a href="{% url 'admin:accounts_user_changelist' %}"
+           class="text-xs font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+          {% trans "View all" %} →
+        </a>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-base-100 dark:border-base-700">
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-base-500 dark:text-base-400">{% trans "User" %}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-base-500 dark:text-base-400">{% trans "Status" %}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-base-500 dark:text-base-400">{% trans "Joined" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-base-100 dark:divide-base-800">
+          {% for user in recent_users %}
+          <tr class="bg-white transition-colors hover:bg-base-50 dark:bg-base-900 dark:hover:bg-base-800">
+            <td class="px-6 py-3">
+              <a href="{% url 'admin:accounts_user_change' user.pk %}" class="group">
+                <div class="font-medium text-base-900 group-hover:text-primary-600 dark:text-base-100 dark:group-hover:text-primary-400">
+                  {{ user.name }}
+                </div>
+                <div class="text-xs text-base-400 dark:text-base-500">{{ user.email }}</div>
+              </a>
+            </td>
+            <td class="px-6 py-3">
+              {% if user.is_active %}
+              <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                {% trans "Active" %}
+              </span>
+              {% else %}
+              <span class="inline-flex rounded-full bg-base-100 px-2 py-0.5 text-xs font-medium text-base-500 dark:bg-base-800 dark:text-base-400">
+                {% trans "Inactive" %}
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-3 text-xs text-base-400 dark:text-base-500">
+              {{ user.date_joined|date:"M d, Y" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="px-6 py-10 text-center text-sm text-base-400 dark:text-base-500">
+              {% trans "No users yet." %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Plan Breakdown #}
+    <div class="flex flex-col gap-6 rounded-default border border-base-200 bg-white p-6 dark:border-base-800 dark:bg-base-900">
+      <h3 class="text-sm font-semibold text-base-900 dark:text-base-100">{% trans "Subscription Plans" %}</h3>
+
+      {% if plan_breakdown.total %}
+        {% widthratio plan_breakdown.free plan_breakdown.total 100 as free_pct %}
+        {% widthratio plan_breakdown.paid plan_breakdown.total 100 as paid_pct %}
+
+        <div class="flex flex-col gap-5">
+
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-base-600 dark:text-base-300">{% trans "Free" %}</span>
+              <span class="text-base-400 dark:text-base-500">{{ plan_breakdown.free }}</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-base-100 dark:bg-base-800">
+              <div class="h-full rounded-full bg-base-400 transition-all dark:bg-base-500"
+                   style="width: {{ free_pct }}%"></div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-base-600 dark:text-base-300">{% trans "Paid" %}</span>
+              <span class="text-base-400 dark:text-base-500">{{ plan_breakdown.paid }}</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-base-100 dark:bg-base-800">
+              <div class="h-full rounded-full bg-primary-500 transition-all"
+                   style="width: {{ paid_pct }}%"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-auto border-t border-base-100 pt-4 dark:border-base-800">
+          <div class="flex items-center justify-between text-xs text-base-500 dark:text-base-400">
+            <span>{% trans "Total Companies" %}</span>
+            <a href="{% url 'admin:accounts_companyprofile_changelist' %}"
+               class="font-semibold text-base-900 hover:text-primary-600 dark:text-base-100 dark:hover:text-primary-400">
+              {{ plan_breakdown.total }}
+            </a>
+          </div>
+        </div>
+
+      {% else %}
+        <p class="text-sm text-base-400 dark:text-base-500">{% trans "No companies registered yet." %}</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
