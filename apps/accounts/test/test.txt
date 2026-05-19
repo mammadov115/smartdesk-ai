@@ -1,0 +1,49 @@
+BASE=http://localhost:8000
+
+# ── 1. REGISTER ────────────────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"StrongPass1!"}' | jq
+
+# ── 2. VERIFY EMAIL ────────────────────────────────────────────────────────────
+# grab uid & token from the email printed to your terminal / Mailpit UI
+curl -s -X POST $BASE/api/auth/verify-email/ \
+  -H "Content-Type: application/json" \
+  -d '{"uid":"<uid>","token":"<token>"}' | jq
+
+# ── 3. LOGIN  →  save tokens ───────────────────────────────────────────────────
+curl -s -X POST $BASE/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"StrongPass1!"}' | jq
+# response: { "access": "...", "refresh": "..." }
+
+# store for subsequent requests:
+ACCESS=<paste access token>
+REFRESH=<paste refresh token>
+
+# ── 4. LOGOUT  (blacklists the refresh token) ──────────────────────────────────
+curl -s -X POST $BASE/api/auth/logout/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d "{\"refresh\":\"$REFRESH\"}" | jq
+
+# ── 5. FORGOT PASSWORD ─────────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/auth/password/forgot/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com"}' | jq
+
+# ── 6. RESET PASSWORD ──────────────────────────────────────────────────────────
+# grab uid & token from the reset email
+curl -s -X POST $BASE/api/auth/password/reset/ \
+  -H "Content-Type: application/json" \
+  -d '{"uid":"<uid>","token":"<token>","password":"NewStrongPass1!"}' | jq
+
+# ── 7. COMPANY PROFILE — GET ───────────────────────────────────────────────────
+curl -s $BASE/api/company/me/ \
+  -H "Authorization: Bearer $ACCESS" | jq
+
+# ── 8. COMPANY PROFILE — PATCH ────────────────────────────────────────────────
+curl -s -X PATCH $BASE/api/company/me/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"contact_email":"contact@acme.com","phone_number":"+1234567890","website":"https://acme.com"}' | jq
