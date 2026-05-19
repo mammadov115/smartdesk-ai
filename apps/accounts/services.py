@@ -60,7 +60,7 @@ def register_company_owner(validated_data, request=None):
         subscription_plan=subscription_plan,
     )
 
-    verify_path = reverse("accounts:verify-email")
+    verify_path = reverse("accounts:auth-verify-email")
     verify_url = _build_absolute_url(request, verify_path)
     verify_url = (
         f"{verify_url}?uid={encode_uid(user)}"
@@ -110,7 +110,7 @@ def request_password_reset(email, request=None):
     if user is None:
         return None
 
-    reset_path = reverse("accounts:reset-password")
+    reset_path = reverse("accounts:auth-password-reset")
     reset_url = _build_absolute_url(request, reset_path)
     reset_url = f"{reset_url}?uid={encode_uid(user)}&token={default_token_generator.make_token(user)}"
     message = (
