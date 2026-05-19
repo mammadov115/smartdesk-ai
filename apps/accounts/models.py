@@ -44,6 +44,14 @@ class CompanyProfile(models.Model):
         choices=SubscriptionPlan.choices,
         default=SubscriptionPlan.FREE,
     )
+    # AI chat widget settings
+    chat_name = models.CharField(max_length=255, default="AI Assistant")
+    greeting_message = models.TextField(default="Hello! How can I help you today?")
+    chat_language = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Language the AI should respond in (e.g. 'Azerbaijani'). Leave blank for default.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

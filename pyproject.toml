@@ -17,6 +17,8 @@ dependencies = [
     "djangorestframework==3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular==0.29.0",
+    "langchain-core>=1.4.0",
+    "langchain-openai>=1.2.1",
     "openai>=2.37.0",
     "pgvector>=0.4.2",
     "psycopg2-binary>=2.9.12",

@@ -116,6 +116,18 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("Chat"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Sessions"),
+                        "icon": "chat",
+                        "link": reverse_lazy("admin:chat_chatsession_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }
