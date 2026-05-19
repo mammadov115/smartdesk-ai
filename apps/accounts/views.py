@@ -1,6 +1,7 @@
 from rest_framework import permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
 from .schemas import company_profile_schema
 from .schemas import email_verification_schema
@@ -20,15 +21,16 @@ from .services import login_user
 from .services import logout_user
 from .services import register_company_owner
 from .services import request_password_reset
-from .services import reset_password
-from .services import verify_email
+from .services import reset_password as reset_password_service
+from .services import verify_email as verify_email_service
 
 
-class RegisterAPIView(APIView):
+class AuthViewSet(ViewSet):
     permission_classes = [permissions.AllowAny]
 
     @registration_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"])
+    def register(self, request):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         register_company_owner(serializer.validated_data, request=request)
@@ -37,15 +39,12 @@ class RegisterAPIView(APIView):
             status=201,
         )
 
-
-class VerifyEmailAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
     @email_verification_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"], url_path="verify-email", url_name="verify-email")
+    def verify_email(self, request):
         serializer = EmailVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = verify_email(
+        user = verify_email_service(
             serializer.validated_data["uid"],
             serializer.validated_data["token"],
         )
@@ -53,12 +52,9 @@ class VerifyEmailAPIView(APIView):
             return Response({"detail": "Invalid or expired verification token."}, status=400)
         return Response({"detail": "Email verified successfully."})
 
-
-class LoginAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
     @login_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"])
+    def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = login_user(
@@ -70,35 +66,26 @@ class LoginAPIView(APIView):
             return Response({"detail": "Invalid credentials or unverified account."}, status=400)
         return Response({"detail": "Logged in successfully."})
 
-
-class LogoutAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
     @logout_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def logout(self, request):
         logout_user(request)
         return Response({"detail": "Logged out successfully."})
 
-
-class ForgotPasswordAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
     @forgot_password_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"], url_path="password/forgot", url_name="password-forgot")
+    def forgot_password(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         request_password_reset(serializer.validated_data["email"], request=request)
         return Response({"detail": "If the account exists, a reset email has been sent."})
 
-
-class PasswordResetAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
     @password_reset_schema
-    def post(self, request):
+    @action(detail=False, methods=["post"], url_path="password/reset", url_name="password-reset")
+    def reset_password(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = reset_password(
+        user = reset_password_service(
             serializer.validated_data["uid"],
             serializer.validated_data["token"],
             serializer.validated_data["password"],
@@ -108,17 +95,17 @@ class PasswordResetAPIView(APIView):
         return Response({"detail": "Password reset successfully."})
 
 
-class CompanyProfileAPIView(APIView):
+class CompanyProfileViewSet(ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     @company_profile_schema
-    def get(self, request):
-        company_profile = get_or_update_company_profile(request.user)
-        serializer = CompanyProfileSerializer(company_profile)
-        return Response(serializer.data)
+    @action(detail=False, methods=["get", "patch"])
+    def me(self, request):
+        if request.method == "GET":
+            company_profile = get_or_update_company_profile(request.user)
+            serializer = CompanyProfileSerializer(company_profile)
+            return Response(serializer.data)
 
-    @company_profile_schema
-    def patch(self, request):
         company_profile = get_or_update_company_profile(request.user)
         serializer = CompanyProfileSerializer(
             company_profile,
