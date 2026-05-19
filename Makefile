@@ -30,6 +30,7 @@ docker-build: ## Build docker containers
 docker-up: ## Start docker containers (detached) and run server
 	$(DC) up -d
 	$(MANAGE) runserver --settings=config.settings.local
+	uv run --env-file .envs/.local/.env celery -A config.celery_app worker --loglevel=info
 
 docker-down: ## Stop and remove docker containers
 	$(DC) down

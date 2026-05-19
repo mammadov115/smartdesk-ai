@@ -32,5 +32,6 @@ services:
       - "1025:1025"   # SMTP
     restart: unless-stopped
 
+
 volumes:
   postgres_data_local:
