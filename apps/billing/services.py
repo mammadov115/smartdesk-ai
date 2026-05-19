@@ -3,6 +3,8 @@ from django.conf import settings
 
 import djstripe.models
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 def _get_or_create_customer(user) -> djstripe.models.Customer:
     customer, _ = djstripe.models.Customer.get_or_create(subscriber=user)

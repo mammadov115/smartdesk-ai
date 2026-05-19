@@ -4,7 +4,7 @@ from .general import env
 # ------------------------------------------------------------------------------
 # https://dj-stripe.dev/configuration/
 STRIPE_LIVE_MODE = env.bool("STRIPE_LIVE_MODE", default=False)
-STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 
 DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
