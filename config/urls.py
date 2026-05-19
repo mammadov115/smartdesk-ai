@@ -19,6 +19,8 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
 
     path("", include("apps.accounts.urls")),
+    path("", include("apps.billing.urls")),
+    path("stripe/", include("djstripe.urls", namespace="djstripe")),
 
     # schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

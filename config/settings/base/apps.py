@@ -20,11 +20,13 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
-    "django_extensions"
+    "django_extensions",
+    "djstripe",
 ]
 
 LOCAL_APPS = [
     "apps.accounts",
+    "apps.billing",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

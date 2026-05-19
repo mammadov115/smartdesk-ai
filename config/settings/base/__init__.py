@@ -19,3 +19,4 @@ from .celery import *  # noqa
 from .migrations import *  # noqa
 from .urls import *  # noqa
 from .unfold import *  # noqa
+from .stripe import *  # noqa
