@@ -14,6 +14,7 @@ from .serializers import CompanyProfileSerializer
 from .serializers import EmailVerificationSerializer
 from .serializers import ForgotPasswordSerializer
 from .serializers import LoginSerializer
+from .serializers import LogoutSerializer
 from .serializers import PasswordResetSerializer
 from .serializers import RegistrationSerializer
 from .services import get_or_update_company_profile
@@ -57,19 +58,21 @@ class AuthViewSet(ViewSet):
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = login_user(
-            request,
+        tokens = login_user(
             serializer.validated_data["email"],
             serializer.validated_data["password"],
         )
-        if user is None:
+        if tokens is None:
             return Response({"detail": "Invalid credentials or unverified account."}, status=400)
-        return Response({"detail": "Logged in successfully."})
+        return Response(tokens)
 
     @logout_schema
     @action(detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def logout(self, request):
-        logout_user(request)
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if not logout_user(serializer.validated_data["refresh"]):
+            return Response({"detail": "Invalid or already blacklisted token."}, status=400)
         return Response({"detail": "Logged out successfully."})
 
     @forgot_password_schema

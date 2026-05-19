@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth import login
-from django.contrib.auth import logout
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
@@ -91,17 +91,26 @@ def verify_email(uidb64, token):
     return user
 
 
-def login_user(request, email, password):
-    user = authenticate(request=request, username=email.strip().lower(), password=password)
+def login_user(email, password):
+    """Authenticate user and return a JWT token pair, or None on failure."""
+    user = authenticate(username=email.strip().lower(), password=password)
     if user is None or not user.is_active or not user.is_email_verified:
         return None
 
-    login(request, user)
-    return user
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
 
 
-def logout_user(request):
-    logout(request)
+def logout_user(refresh_token: str) -> bool:
+    """Blacklist the provided refresh token. Returns False if token is invalid."""
+    try:
+        RefreshToken(refresh_token).blacklist()
+        return True
+    except TokenError:
+        return False
 
 
 @transaction.atomic
