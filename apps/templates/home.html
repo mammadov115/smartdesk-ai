@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smartdesk-ai | Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f3ef;
+      --surface: #ffffff;
+      --ink: #181715;
+      --muted: #66615a;
+      --line: #d8d2c8;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+    }
+
+    body {
+      font-family: "Space Grotesk", sans-serif;
+      background:
+        radial-gradient(circle at 8% 8%, #fef9c3 0, transparent 35%),
+        radial-gradient(circle at 92% 16%, #dbeafe 0, transparent 30%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    .rise {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: rise 650ms ease forwards;
+    }
+
+    .rise-1 {
+      animation-delay: 0.08s;
+    }
+
+    .rise-2 {
+      animation-delay: 0.18s;
+    }
+
+    .rise-3 {
+      animation-delay: 0.28s;
+    }
+
+    @keyframes rise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8 sm:px-8 lg:px-10">
+    <header class="rise flex items-center justify-between border-b border-[color:var(--line)] pb-6">
+      <a href="/" class="text-lg font-semibold tracking-tight">Smartdesk-ai</a>
+      <a
+        href="/api/docs/"
+        class="rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--ink)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+      >
+        API Docs
+      </a>
+    </header>
+
+    <section class="flex flex-1 items-center py-12 sm:py-20">
+      <div class="grid w-full gap-10 lg:grid-cols-2 lg:gap-14">
+        <div class="space-y-6">
+          <p class="rise rise-1 inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-[color:var(--muted)]">
+            Premium Django Starter
+          </p>
+
+          <h1 class="rise rise-2 max-w-xl text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+            Ship a polished backend product with a calm, focused front door.
+          </h1>
+
+          <p class="rise rise-3 max-w-xl text-base leading-relaxed text-[color:var(--muted)] sm:text-lg">
+            This homepage is intentionally minimal: clean hierarchy, premium spacing, and subtle motion. Tailwind CDN keeps it simple while your backend handles the real work.
+          </p>
+
+          <div class="rise rise-3 flex flex-wrap items-center gap-3 pt-1">
+            <a
+              href="/admin/"
+              class="rounded-full bg-[color:var(--ink)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Open Admin
+            </a>
+            <a
+              href="/api/redoc/"
+              class="rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-5 py-2.5 text-sm font-semibold transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+            >
+              View ReDoc
+            </a>
+          </div>
+        </div>
+
+        <div class="rise rise-3">
+          <div class="relative overflow-hidden rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 shadow-[0_14px_45px_-30px_rgba(0,0,0,0.35)] sm:p-8">
+            <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[color:var(--accent-soft)]"></div>
+            <div class="relative space-y-6">
+              <div class="space-y-2">
+                <p class="text-xs font-medium uppercase tracking-[0.14em] text-[color:var(--muted)]">System Status</p>
+                <h2 class="text-2xl font-semibold">Ready for Development</h2>
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-3">
+                <article class="rounded-2xl border border-[color:var(--line)] p-4">
+                  <p class="text-xs text-[color:var(--muted)]">Framework</p>
+                  <p class="mt-1 text-sm font-semibold">Django</p>
+                </article>
+                <article class="rounded-2xl border border-[color:var(--line)] p-4">
+                  <p class="text-xs text-[color:var(--muted)]">Docs</p>
+                  <p class="mt-1 text-sm font-semibold">OpenAPI</p>
+                </article>
+                <article class="rounded-2xl border border-[color:var(--line)] p-4">
+                  <p class="text-xs text-[color:var(--muted)]">Style</p>
+                  <p class="mt-1 text-sm font-semibold">Tailwind CDN</p>
+                </article>
+              </div>
+
+              <p class="text-sm leading-relaxed text-[color:var(--muted)]">
+                Set this as your foundation and keep building features in focused, maintainable backend modules.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
