@@ -83,6 +83,28 @@ UNFOLD = {
                 ],
             },
             {
+                "title": _("Billing"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Customers"),
+                        "icon": "credit_card",
+                        "link": reverse_lazy("admin:djstripe_customer_changelist"),
+                    },
+                    {
+                        "title": _("Subscriptions"),
+                        "icon": "autorenew",
+                        "link": reverse_lazy("admin:djstripe_subscription_changelist"),
+                    },
+                    {
+                        "title": _("Invoices"),
+                        "icon": "receipt_long",
+                        "link": reverse_lazy("admin:djstripe_invoice_changelist"),
+                    },
+                ],
+            },
+            {
                 "title": _("Knowledge Base"),
                 "separator": True,
                 "collapsible": True,
