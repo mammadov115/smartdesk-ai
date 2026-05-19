@@ -82,6 +82,18 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("Knowledge Base"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Documents"),
+                        "icon": "description",
+                        "link": reverse_lazy("admin:knowledge_knowledgedocument_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }
