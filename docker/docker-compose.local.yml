@@ -2,7 +2,7 @@ name: smartdesk-ai_local
 
 services:
   db:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     volumes:
       - postgres_data_local:/var/lib/postgresql/data
     env_file:

@@ -1,0 +1,89 @@
+BASE=http://localhost:8000
+
+# ── PREREQUISITE: LOGIN  →  save token ────────────────────────────────────────
+curl -s -X POST $BASE/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"StrongPass1!"}' | jq
+
+ACCESS=<paste access token>
+
+# ── 1. UPLOAD PDF ─────────────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Authorization: Bearer $ACCESS" \
+  -F "title=Product Manual" \
+  -F "source_type=pdf" \
+  -F "file=@/path/to/document.pdf" | jq
+
+# ── 2. UPLOAD WORD (.docx) ────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Authorization: Bearer $ACCESS" \
+  -F "title=Company Policy" \
+  -F "source_type=docx" \
+  -F "file=@/path/to/document.docx" | jq
+
+# ── 3. UPLOAD PLAIN TEXT FILE (.txt) ──────────────────────────────────────────
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Authorization: Bearer $ACCESS" \
+  -F "title=Release Notes" \
+  -F "source_type=txt" \
+  -F "file=@/path/to/notes.txt" | jq
+
+# ── 4. PASTE RAW TEXT ─────────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{
+    "title": "Onboarding Guide",
+    "source_type": "text",
+    "raw_text": "Welcome to Acme Corp. Here is everything you need to get started..."
+  }' | jq
+
+# ── 5. CREATE FAQ ENTRY ───────────────────────────────────────────────────────
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{
+    "title": "Refund Policy FAQ",
+    "source_type": "faq",
+    "question": "How do I request a refund?",
+    "answer": "You can request a refund within 30 days by contacting support@acme.com."
+  }' | jq
+
+# response for all creates:
+# { "id": 1, "title": "...", "source_type": "...", "status": "processing", ... }
+# status will flip to "ready" once the Celery task finishes.
+
+DOC_ID=<paste id from any response above>
+
+# ── 6. LIST ALL DOCUMENTS ─────────────────────────────────────────────────────
+curl -s $BASE/api/knowledge/documents/ \
+  -H "Authorization: Bearer $ACCESS" | jq
+
+# ── 7. GET SINGLE DOCUMENT  (check status: processing → ready / failed) ───────
+curl -s $BASE/api/knowledge/documents/$DOC_ID/ \
+  -H "Authorization: Bearer $ACCESS" | jq
+
+# ── 8. DELETE DOCUMENT ────────────────────────────────────────────────────────
+curl -s -X DELETE $BASE/api/knowledge/documents/$DOC_ID/ \
+  -H "Authorization: Bearer $ACCESS"
+# 204 No Content on success
+
+# ── 9. VALIDATION ERRORS (expected 400s) ──────────────────────────────────────
+
+# Missing file for pdf
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"title":"Broken","source_type":"pdf"}' | jq
+
+# Missing raw_text for text
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"title":"Broken","source_type":"text"}' | jq
+
+# Missing answer for faq
+curl -s -X POST $BASE/api/knowledge/documents/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"title":"Broken","source_type":"faq","question":"What?"}' | jq
