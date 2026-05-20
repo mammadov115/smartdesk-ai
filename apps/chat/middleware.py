@@ -24,18 +24,20 @@ def _get_user_from_token(raw_token: str):
 
 
 @database_sync_to_async
-def _is_origin_allowed(embed_token: str, origin_host: str) -> bool:
+def _get_owner_if_origin_allowed(embed_token: str, origin_host: str):
     """
-    Return True if origin_host is in the AllowedDomain list for the company
-    identified by embed_token.  Unknown embed tokens are always rejected.
+    Return the company owner User if origin_host is in the AllowedDomain list
+    for the company identified by embed_token.  Returns None otherwise.
     """
     from apps.accounts.models import AllowedDomain, CompanyProfile
 
     try:
-        company = CompanyProfile.objects.get(embed_token=embed_token)
+        company = CompanyProfile.objects.select_related("owner").get(embed_token=embed_token)
     except CompanyProfile.DoesNotExist:
-        return False
-    return AllowedDomain.objects.filter(company=company, domain=origin_host).exists()
+        return None
+    if not AllowedDomain.objects.filter(company=company, domain=origin_host).exists():
+        return None
+    return company.owner
 
 
 def _extract_origin_host(scope) -> str:
@@ -62,11 +64,11 @@ class JWTAuthMiddleware(BaseMiddleware):
             embed_token_list = params.get("embed_token", [])
             if embed_token_list:
                 origin_host = _extract_origin_host(scope)
-                allowed = await _is_origin_allowed(embed_token_list[0], origin_host)
-                if not allowed:
+                owner = await _get_owner_if_origin_allowed(embed_token_list[0], origin_host)
+                if owner is None:
                     await send({"type": "websocket.close"})
                     return
-                scope["user"] = AnonymousUser()
+                scope["user"] = owner
                 return await super().__call__(scope, receive, send)
 
             token_list = params.get("token", [])
