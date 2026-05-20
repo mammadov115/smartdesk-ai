@@ -1,4 +1,4 @@
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
@@ -23,19 +23,57 @@ def _get_user_from_token(raw_token: str):
         return AnonymousUser()
 
 
+@database_sync_to_async
+def _is_origin_allowed(embed_token: str, origin_host: str) -> bool:
+    """
+    Return True if origin_host is in the AllowedDomain list for the company
+    identified by embed_token.  Unknown embed tokens are always rejected.
+    """
+    from apps.accounts.models import AllowedDomain, CompanyProfile
+
+    try:
+        company = CompanyProfile.objects.get(embed_token=embed_token)
+    except CompanyProfile.DoesNotExist:
+        return False
+    return AllowedDomain.objects.filter(company=company, domain=origin_host).exists()
+
+
+def _extract_origin_host(scope) -> str:
+    """Return the bare hostname from the WS connection's Origin header."""
+    headers = dict(scope.get("headers", []))
+    origin = headers.get(b"origin", b"").decode()
+    if not origin:
+        return ""
+    return urlparse(origin).hostname or ""
+
+
 class JWTAuthMiddleware(BaseMiddleware):
     """
-    Reads a JWT token from the WebSocket query string (?token=<access_token>)
-    and populates scope["user"].  Keeps unauthenticated connections as
-    AnonymousUser — the individual consumers decide whether to reject them.
+    1. Reads a JWT token from ?token=<access_token> and populates scope["user"].
+    2. If ?embed_token=<uuid> is present instead, validates the Origin header
+       against the company's AllowedDomain list and rejects with 403 if not found.
     """
 
     async def __call__(self, scope, receive, send):
-        query_string = scope.get("query_string", b"").decode()
-        params = parse_qs(query_string)
-        token_list = params.get("token", [])
-        if token_list:
-            scope["user"] = await _get_user_from_token(token_list[0])
-        else:
-            scope["user"] = AnonymousUser()
+        if scope.get("type") == "websocket":
+            query_string = scope.get("query_string", b"").decode()
+            params = parse_qs(query_string)
+
+            embed_token_list = params.get("embed_token", [])
+            if embed_token_list:
+                origin_host = _extract_origin_host(scope)
+                allowed = await _is_origin_allowed(embed_token_list[0], origin_host)
+                if not allowed:
+                    await send({"type": "websocket.close"})
+                    return
+                scope["user"] = AnonymousUser()
+                return await super().__call__(scope, receive, send)
+
+            token_list = params.get("token", [])
+            scope["user"] = (
+                await _get_user_from_token(token_list[0])
+                if token_list
+                else AnonymousUser()
+            )
+
         return await super().__call__(scope, receive, send)

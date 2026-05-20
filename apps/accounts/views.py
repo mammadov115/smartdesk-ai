@@ -1,3 +1,5 @@
+import uuid
+
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,6 +12,7 @@ from .schemas import login_schema
 from .schemas import logout_schema
 from .schemas import password_reset_schema
 from .schemas import registration_schema
+from .serializers import AllowedDomainSerializer
 from .serializers import CompanyProfileSerializer
 from .serializers import EmailVerificationSerializer
 from .serializers import ForgotPasswordSerializer
@@ -24,6 +27,7 @@ from .services import register_company_owner
 from .services import request_password_reset
 from .services import reset_password as reset_password_service
 from .services import verify_email as verify_email_service
+from .models import AllowedDomain
 
 
 class AuthViewSet(ViewSet):
@@ -118,3 +122,40 @@ class CompanyProfileViewSet(ViewSet):
         serializer.is_valid(raise_exception=True)
         company_profile = get_or_update_company_profile(request.user, serializer.validated_data)
         return Response(CompanyProfileSerializer(company_profile).data)
+
+    @action(detail=False, methods=["post"], url_path="embed-token/regenerate", url_name="embed-token-regenerate")
+    def regenerate_embed_token(self, request):
+        """Issue a fresh embed token, invalidating the previous one."""
+        company = get_or_update_company_profile(request.user)
+        company.embed_token = uuid.uuid4()
+        company.save(update_fields=["embed_token"])
+        return Response({"embed_token": str(company.embed_token)})
+
+
+class AllowedDomainViewSet(ViewSet):
+    """CRUD for the list of domains permitted to embed the chat widget."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request):
+        company = get_or_update_company_profile(request.user)
+        qs = AllowedDomain.objects.filter(company=company)
+        return Response(AllowedDomainSerializer(qs, many=True).data)
+
+    def create(self, request):
+        company = get_or_update_company_profile(request.user)
+        serializer = AllowedDomainSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        domain = serializer.validated_data["domain"].lower().strip()
+        obj, created = AllowedDomain.objects.get_or_create(company=company, domain=domain)
+        status_code = 201 if created else 200
+        return Response(AllowedDomainSerializer(obj).data, status=status_code)
+
+    def destroy(self, request, pk=None):
+        company = get_or_update_company_profile(request.user)
+        try:
+            obj = AllowedDomain.objects.get(pk=pk, company=company)
+        except AllowedDomain.DoesNotExist:
+            return Response(status=404)
+        obj.delete()
+        return Response(status=204)

@@ -5,6 +5,13 @@ import uuid
 from django.db import migrations, models
 
 
+def populate_embed_tokens(apps, schema_editor):
+    CompanyProfile = apps.get_model("accounts", "CompanyProfile")
+    for profile in CompanyProfile.objects.all():
+        profile.embed_token = uuid.uuid4()
+        profile.save(update_fields=["embed_token"])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -22,7 +29,16 @@ class Migration(migrations.Migration):
             name='chat_icon',
             field=models.ImageField(blank=True, null=True, upload_to='chat-icons/'),
         ),
+        # Step 1: add without unique so all rows get a value
         migrations.AddField(
+            model_name='companyprofile',
+            name='embed_token',
+            field=models.UUIDField(default=uuid.uuid4, editable=False),
+        ),
+        # Step 2: populate unique UUIDs for existing rows
+        migrations.RunPython(populate_embed_tokens, migrations.RunPython.noop),
+        # Step 3: enforce uniqueness
+        migrations.AlterField(
             model_name='companyprofile',
             name='embed_token',
             field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),

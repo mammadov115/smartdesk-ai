@@ -3,13 +3,34 @@ import logging
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+
+from apps.accounts.models import CompanyProfile
+from apps.accounts.serializers import WidgetConfigSerializer
 
 from .models import ChatMessage, ChatSession
 from .serializers import AskSerializer, ChatMessageSerializer, ChatSessionSerializer
 from .services import FALLBACK_ANSWER, answer_question, escalate_to_operator
 
 logger = logging.getLogger(__name__)
+
+
+class WidgetConfigView(APIView):
+    """
+    Public endpoint — no authentication required.
+    Returns the chat widget appearance settings for the given embed token.
+    Used by the frontend script tag to style the widget before load.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, embed_token):
+        try:
+            company = CompanyProfile.objects.get(embed_token=embed_token)
+        except CompanyProfile.DoesNotExist:
+            return Response(status=404)
+        return Response(WidgetConfigSerializer(company).data)
 
 
 class ChatSessionViewSet(

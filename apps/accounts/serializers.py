@@ -1,6 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from .models import AllowedDomain
 from .models import CompanyProfile
 from .models import User
 
@@ -53,6 +54,20 @@ class PasswordResetSerializer(serializers.Serializer):
         return value
 
 
+class AllowedDomainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AllowedDomain
+        fields = ("id", "domain")
+
+
+class WidgetConfigSerializer(serializers.ModelSerializer):
+    """Public serializer — only exposes widget appearance, no sensitive fields."""
+
+    class Meta:
+        model = CompanyProfile
+        fields = ("chat_name", "chat_color", "chat_icon")
+
+
 class CompanyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyProfile
@@ -64,9 +79,12 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "website",
             "address",
             "subscription_plan",
+            "embed_token",
             "chat_name",
             "greeting_message",
             "chat_language",
+            "chat_color",
+            "chat_icon",
         )
         extra_kwargs = {
             "name": {"required": False},
@@ -76,7 +94,10 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "address": {"required": False, "allow_blank": True},
             "logo": {"required": False, "allow_null": True},
             "subscription_plan": {"required": False},
+            "embed_token": {"read_only": True},
             "chat_name": {"required": False},
             "greeting_message": {"required": False},
             "chat_language": {"required": False, "allow_blank": True},
+            "chat_color": {"required": False},
+            "chat_icon": {"required": False, "allow_null": True},
         }
