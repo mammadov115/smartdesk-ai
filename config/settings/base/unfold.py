@@ -128,6 +128,23 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("Notifications"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Preferences"),
+                        "icon": "notifications",
+                        "link": reverse_lazy("admin:notifications_notificationpreference_changelist"),
+                    },
+                    {
+                        "title": _("Logs"),
+                        "icon": "history",
+                        "link": reverse_lazy("admin:notifications_notificationlog_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }
