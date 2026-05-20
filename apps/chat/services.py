@@ -58,7 +58,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             owner_user.pk,
         )
         if not lang_instruction:
-            return {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
+            return {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True, "embedding": query_vector}
 
         # Translate the fallback message through the LLM so it respects chat_language
         fallback_prompt = ChatPromptTemplate.from_messages(
@@ -78,7 +78,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             temperature=0,
         )
         fallback_answer = (fallback_prompt | fallback_llm | StrOutputParser()).invoke({})
-        return {"answer": fallback_answer, "sources": [], "is_fallback": True}
+        return {"answer": fallback_answer, "sources": [], "is_fallback": True, "embedding": query_vector}
 
     # 5. Build context string and deduplicated source list
     context = "\n\n".join(chunk.content for chunk in chunks)
@@ -112,7 +112,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
     chain = prompt | llm | StrOutputParser()
     answer = chain.invoke({"context": context, "question": question})
 
-    return {"answer": answer, "sources": sources, "is_fallback": False}
+    return {"answer": answer, "sources": sources, "is_fallback": False, "embedding": query_vector}
 
 
 def escalate_to_operator(session) -> None:

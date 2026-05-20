@@ -70,8 +70,8 @@ class ChatSessionViewSet(
         serializer.is_valid(raise_exception=True)
         question = serializer.validated_data["question"]
 
-        # Persist the user turn
-        ChatMessage.objects.create(
+        # Persist the user turn (embedding added after RAG pipeline runs)
+        user_msg = ChatMessage.objects.create(
             session=session,
             role=ChatMessage.Role.USER,
             content=question,
@@ -86,6 +86,11 @@ class ChatSessionViewSet(
         except Exception:
             logger.exception("RAG pipeline error for session %s", session.pk)
             result = {"answer": FALLBACK_ANSWER, "sources": []}
+
+        # Persist the question embedding for analytics clustering
+        if result.get("embedding") is not None:
+            user_msg.embedding = result["embedding"]
+            user_msg.save(update_fields=["embedding"])
 
         # Persist the assistant turn
         assistant_msg = ChatMessage.objects.create(

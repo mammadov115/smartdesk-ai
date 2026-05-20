@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from pgvector.django import VectorField
 
 
 class ChatSession(models.Model):
@@ -53,6 +54,8 @@ class ChatMessage(models.Model):
     content = models.TextField()
     # Populated for assistant messages: which document chunks backed the answer.
     sources = models.JSONField(default=list, blank=True)
+    # Stored for user messages only — used by analytics to cluster similar questions.
+    embedding = VectorField(dimensions=1536, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
