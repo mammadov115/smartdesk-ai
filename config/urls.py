@@ -23,6 +23,7 @@ urlpatterns = [
     path("", include("apps.knowledge.urls")),
     path("", include("apps.chat.urls")),
     path("", include("apps.analytics.urls")),
+    path("", include("apps.notifications.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
 
     # schema

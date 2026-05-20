@@ -136,3 +136,13 @@ def escalate_to_operator(session) -> None:
         },
     )
     logger.info("Session %s escalated to operator (owner=%s)", session.pk, session.owner.email)
+
+    # Queue the operator handoff email notification (deferred import avoids
+    # any potential circular dependency at module load time).
+    try:
+        from apps.notifications.tasks import notify_operator_handoff
+        notify_operator_handoff.delay(session.pk)
+    except Exception:
+        logger.exception(
+            "Failed to queue operator handoff notification for session %s", session.pk
+        )

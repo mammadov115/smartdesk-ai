@@ -1,6 +1,7 @@
 from .redis import REDIS_URL, REDIS_SSL
 from .general import USE_TZ, TIME_ZONE
 import ssl
+from celery.schedules import crontab
 
 
 # Celery
@@ -37,6 +38,20 @@ CELERY_TASK_TIME_LIMIT = 5 * 60
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# Periodic tasks registered here are synced to the DB on first beat startup.
+# https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html
+CELERY_BEAT_SCHEDULE = {
+    # Check every 15 minutes for WAITING sessions that have gone unanswered.
+    "check-unanswered-conversations": {
+        "task": "apps.notifications.tasks.check_unanswered_conversations",
+        "schedule": crontab(minute="*/15"),
+    },
+    # Send a weekly analytics summary every Monday at 08:00 local time.
+    "send-weekly-analytics-summary": {
+        "task": "apps.notifications.tasks.send_weekly_analytics_summary",
+        "schedule": crontab(hour=8, minute=0, day_of_week="monday"),
+    },
+}
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-send-task-events
 CELERY_WORKER_SEND_TASK_EVENTS = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std-setting-task_send_sent_event
