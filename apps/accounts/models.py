@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -52,8 +54,35 @@ class CompanyProfile(models.Model):
         blank=True,
         help_text="Language the AI should respond in (e.g. 'Azerbaijani'). Leave blank for default.",
     )
+    # Widget embed settings
+    embed_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    chat_color = models.CharField(max_length=7, default="#0070f3", help_text="Hex colour for the chat widget.")
+    chat_icon = models.ImageField(upload_to="chat-icons/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+
+class AllowedDomain(models.Model):
+    """
+    Domains that are permitted to embed this company's chat widget.
+    The WebSocket middleware validates the Origin header against this list.
+    """
+
+    company = models.ForeignKey(
+        CompanyProfile,
+        on_delete=models.CASCADE,
+        related_name="allowed_domains",
+    )
+    domain = models.CharField(
+        max_length=253,
+        help_text="Hostname only, no scheme (e.g. acme.com).",
+    )
+
+    class Meta:
+        unique_together = ("company", "domain")
+
+    def __str__(self):
+        return self.domain
