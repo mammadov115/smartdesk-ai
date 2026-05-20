@@ -1,6 +1,8 @@
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+
+    "daphne",  # Must be first — overrides runserver to serve ASGI + WebSockets
     "unfold",  # Must be before django.contrib.admin
     "unfold.contrib.filters",
     "unfold.contrib.forms",
