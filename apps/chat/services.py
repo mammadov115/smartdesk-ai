@@ -1,5 +1,7 @@
 import logging
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -56,7 +58,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             owner_user.pk,
         )
         if not lang_instruction:
-            return {"answer": FALLBACK_ANSWER, "sources": []}
+            return {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
 
         # Translate the fallback message through the LLM so it respects chat_language
         fallback_prompt = ChatPromptTemplate.from_messages(
@@ -76,7 +78,7 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             temperature=0,
         )
         fallback_answer = (fallback_prompt | fallback_llm | StrOutputParser()).invoke({})
-        return {"answer": fallback_answer, "sources": []}
+        return {"answer": fallback_answer, "sources": [], "is_fallback": True}
 
     # 5. Build context string and deduplicated source list
     context = "\n\n".join(chunk.content for chunk in chunks)
@@ -110,4 +112,27 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
     chain = prompt | llm | StrOutputParser()
     answer = chain.invoke({"context": context, "question": question})
 
-    return {"answer": answer, "sources": sources}
+    return {"answer": answer, "sources": sources, "is_fallback": False}
+
+
+def escalate_to_operator(session) -> None:
+    """
+    Transition a ChatSession from AI mode to WAITING and broadcast an
+    escalation notification to the operators_room channel group so that
+    any connected operator dashboards are alerted in real time.
+    """
+    from .models import ChatSession  # local import to avoid circular at module level
+
+    session.status = ChatSession.Status.WAITING
+    session.save(update_fields=["status", "updated_at"])
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "operators_room",
+        {
+            "type": "escalation.notification",
+            "session_id": session.pk,
+            "owner_email": session.owner.email,
+        },
+    )
+    logger.info("Session %s escalated to operator (owner=%s)", session.pk, session.owner.email)

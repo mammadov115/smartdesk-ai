@@ -10,8 +10,8 @@ class ChatSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatSession
-        fields = ["id", "chat_name", "greeting_message", "chat_language", "created_at"]
-        read_only_fields = ["id", "chat_name", "greeting_message", "chat_language", "created_at"]
+        fields = ["id", "status", "chat_name", "greeting_message", "chat_language", "created_at"]
+        read_only_fields = ["id", "status", "chat_name", "greeting_message", "chat_language", "created_at"]
 
     def get_chat_name(self, obj) -> str:
         try:

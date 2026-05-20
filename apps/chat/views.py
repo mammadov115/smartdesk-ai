@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from .models import ChatMessage, ChatSession
 from .serializers import AskSerializer, ChatMessageSerializer, ChatSessionSerializer
-from .services import FALLBACK_ANSWER, answer_question
+from .services import FALLBACK_ANSWER, answer_question, escalate_to_operator
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,13 @@ class ChatSessionViewSet(
             content=result["answer"],
             sources=result["sources"],
         )
+
+        # Escalate to operator on the first fallback in this session
+        if result.get("is_fallback") and session.status == ChatSession.Status.AI:
+            try:
+                escalate_to_operator(session)
+            except Exception:
+                logger.exception("Failed to escalate session %s to operator", session.pk)
 
         return Response(
             ChatMessageSerializer(assistant_msg).data,

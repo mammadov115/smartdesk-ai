@@ -24,15 +24,16 @@ class ChatMessageInline(TabularInline):
 
 @admin.register(ChatSession)
 class ChatSessionAdmin(ModelAdmin):
-    list_display = ("id", "display_owner", "display_message_count", "created_at")
-    search_fields = ("owner__email",)
+    list_display = ("id", "display_owner", "display_status", "display_operator", "display_message_count", "created_at")
+    list_filter = ("status",)
+    search_fields = ("owner__email", "operator__email")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
-    readonly_fields = ("owner", "created_at", "updated_at")
+    readonly_fields = ("owner", "status", "operator", "created_at", "updated_at")
     inlines = [ChatMessageInline]
 
     fieldsets = (
-        ("Session", {"fields": ("owner", "created_at", "updated_at")}),
+        ("Session", {"fields": ("owner", "status", "operator", "created_at", "updated_at")}),
     )
 
     def has_add_permission(self, request):
@@ -44,6 +45,14 @@ class ChatSessionAdmin(ModelAdmin):
     @display(description="Owner")
     def display_owner(self, obj):
         return obj.owner.email
+
+    @display(description="Status")
+    def display_status(self, obj):
+        return obj.get_status_display()
+
+    @display(description="Operator")
+    def display_operator(self, obj):
+        return obj.operator.email if obj.operator else "-"
 
     @display(description="Messages")
     def display_message_count(self, obj):
