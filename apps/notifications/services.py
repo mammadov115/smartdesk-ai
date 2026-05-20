@@ -53,14 +53,17 @@ def send_operator_handoff_email(company: CompanyProfile, session: ChatSession) -
         f"— SmartDesk AI"
     )
 
-    _send(subject, body, recipient)
+    try:
+        _send(subject, body, recipient)
+    except Exception:
+        logger.exception("Operator handoff email failed for session %s", session.pk)
     NotificationLog.objects.create(
         company=company,
         notification_type=NotificationLog.Type.OPERATOR_HANDOFF,
         session=session,
         recipient_email=recipient,
     )
-    logger.info("Operator handoff email sent for session %s → %s", session.pk, recipient)
+    logger.info("Operator handoff notification logged for session %s → %s", session.pk, recipient)
 
 
 def send_unanswered_email(company: CompanyProfile, session: ChatSession) -> None:
@@ -88,14 +91,17 @@ def send_unanswered_email(company: CompanyProfile, session: ChatSession) -> None
         f"— SmartDesk AI"
     )
 
-    _send(subject, body, recipient)
+    try:
+        _send(subject, body, recipient)
+    except Exception:
+        logger.exception("Unanswered email failed for session %s", session.pk)
     NotificationLog.objects.create(
         company=company,
         notification_type=NotificationLog.Type.UNANSWERED,
         session=session,
         recipient_email=recipient,
     )
-    logger.info("Unanswered notification sent for session %s → %s", session.pk, recipient)
+    logger.info("Unanswered notification logged for session %s → %s", session.pk, recipient)
 
 
 def send_weekly_summary_email(company: CompanyProfile) -> None:
@@ -126,14 +132,17 @@ def send_weekly_summary_email(company: CompanyProfile) -> None:
         f"SmartDesk AI"
     )
 
-    _send(subject, body, recipient)
+    try:
+        _send(subject, body, recipient)
+    except Exception:
+        logger.exception("Weekly summary email failed for company %s", company.pk)
     NotificationLog.objects.create(
         company=company,
         notification_type=NotificationLog.Type.WEEKLY_SUMMARY,
         session=None,
         recipient_email=recipient,
     )
-    logger.info("Weekly summary sent for company %s → %s", company.name, recipient)
+    logger.info("Weekly summary notification logged for company %s → %s", company.name, recipient)
 
 
 # ---------------------------------------------------------------------------

@@ -85,7 +85,7 @@ class ChatSessionViewSet(
             result = answer_question(question, request.user, company_profile)
         except Exception:
             logger.exception("RAG pipeline error for session %s", session.pk)
-            result = {"answer": FALLBACK_ANSWER, "sources": []}
+            result = {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
 
         # Persist the question embedding for analytics clustering
         if result.get("embedding") is not None:
