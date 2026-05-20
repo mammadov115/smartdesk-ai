@@ -92,3 +92,83 @@ curl -s -X PATCH $BASE/api/company/me/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ACCESS" \
   -d '{"chat_language": ""}' | jq
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# OPERATOR HANDOFF FLOW
+# Requires: npm install -g wscat
+# ════════════════════════════════════════════════════════════════════════════════
+
+# ── 12. TRIGGER ESCALATION ───────────────────────────────────────────────────
+# Ask something the knowledge base cannot answer.  The AI returns the fallback
+# message AND the backend automatically:
+#   • sets session.status → "waiting"
+#   • broadcasts an escalation.notification event to the operators_room group
+# Check the response: "status" field in a subsequent GET should now be "waiting".
+curl -s -X POST $BASE/api/chat/sessions/$SESSION_ID/ask/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"question":"What is the meaning of life?"}' | jq
+
+# Confirm session status is now "waiting":
+curl -s $BASE/api/chat/sessions/$SESSION_ID/ \
+  -H "Authorization: Bearer $ACCESS" | jq '.status'
+
+# ── 13. OPERATOR LOGIN  →  save operator access token ────────────────────────
+# The operator must be a staff user (is_staff=True) in the database.
+curl -s -X POST $BASE/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"operator@example.com","password":"OperatorPass1!"}' | jq
+
+OPERATOR_ACCESS=<paste operator access token here>
+
+# ── 14. CUSTOMER OPENS THE LIVE-CHAT WEBSOCKET ───────────────────────────────
+# Run this in terminal A.
+# The socket stays open but messages are blocked until an operator joins
+# (session.status must be "live").  Any message sent before that returns:
+#   {"type": "error", "detail": "No operator is available yet."}
+wscat -c "ws://localhost:8000/ws/chat/$SESSION_ID/?token=$ACCESS"
+
+# ── 15. OPERATOR JOINS THE CONVERSATION ──────────────────────────────────────
+# Run this in terminal B.
+# On connect the backend:
+#   • sets session.status → "live"
+#   • sets session.operator → this user
+#   • broadcasts a system message to the group so the customer socket receives:
+#       {"message_id": null, "role": "system",
+#        "content": "An operator has joined the conversation.", ...}
+wscat -c "ws://localhost:8000/ws/operator/chat/$SESSION_ID/?token=$OPERATOR_ACCESS"
+
+# ── 16. LIVE BIDIRECTIONAL CHAT ───────────────────────────────────────────────
+# Both sockets are now in the same channel group "chat_<SESSION_ID>".
+# Every message sent by either side is persisted (ChatMessage) and broadcast
+# to the other socket in real time.
+
+# In terminal A (customer) send:
+# > {"message": "Hi, I need help with my account."}
+
+# In terminal B (operator) send:
+# > {"message": "Hello! I'm here to help. What seems to be the issue?"}
+
+# Both sides will receive JSON frames shaped like:
+# {
+#   "message_id": 42,
+#   "role": "user" | "operator",
+#   "content": "...",
+#   "created_at": "2026-05-20T10:30:00+00:00"
+# }
+
+# ── 17. VERIFY FULL MESSAGE HISTORY AFTER LIVE CHAT ──────────────────────────
+# History now contains: user + assistant (AI phase) + user + operator (live phase).
+# Roles: "user", "assistant", "operator"
+curl -s $BASE/api/chat/sessions/$SESSION_ID/messages/ \
+  -H "Authorization: Bearer $ACCESS" | jq
+
+# ── 18. OPERATOR DISCONNECTS ─────────────────────────────────────────────────
+# Close the wscat connection in terminal B (Ctrl+C).
+# The backend automatically reverts session.status → "waiting" so another
+# operator can pick it up.
+
+# Confirm status reverted:
+curl -s $BASE/api/chat/sessions/$SESSION_ID/ \
+  -H "Authorization: Bearer $ACCESS" | jq '.status'
