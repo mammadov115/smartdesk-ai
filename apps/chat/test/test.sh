@@ -127,7 +127,8 @@ OPERATOR_ACCESS=<paste operator access token here>
 # The socket stays open but messages are blocked until an operator joins
 # (session.status must be "live").  Any message sent before that returns:
 #   {"type": "error", "detail": "No operator is available yet."}
-wscat -c "ws://localhost:8000/ws/chat/$SESSION_ID/?token=$ACCESS"
+wscat -c "ws://localhost:8000/ws/chat/$SESSION_ID/?token=$ACCESS" \
+  -H "Origin: http://localhost:8000"
 
 # ── 15. OPERATOR JOINS THE CONVERSATION ──────────────────────────────────────
 # Run this in terminal B.
@@ -137,7 +138,8 @@ wscat -c "ws://localhost:8000/ws/chat/$SESSION_ID/?token=$ACCESS"
 #   • broadcasts a system message to the group so the customer socket receives:
 #       {"message_id": null, "role": "system",
 #        "content": "An operator has joined the conversation.", ...}
-wscat -c "ws://localhost:8000/ws/operator/chat/$SESSION_ID/?token=$OPERATOR_ACCESS"
+wscat -c "ws://localhost:8000/ws/operator/chat/$SESSION_ID/?token=$OPERATOR_ACCESS" \
+  -H "Origin: http://localhost:8000"
 
 # ── 16. LIVE BIDIRECTIONAL CHAT ───────────────────────────────────────────────
 # Both sockets are now in the same channel group "chat_<SESSION_ID>".
