@@ -22,6 +22,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "django_extensions",
     "djstripe",
+    "channels",
 ]
 
 LOCAL_APPS = [
