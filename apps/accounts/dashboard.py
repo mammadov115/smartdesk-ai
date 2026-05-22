@@ -3,6 +3,27 @@ from django.utils import timezone
 from .models import CompanyProfile, User
 
 
+def _get_total_chats():
+    try:
+        from apps.chat.models import ChatSession
+        return ChatSession.objects.count()
+    except Exception:
+        return 0
+
+
+def _get_total_revenue():
+    """Return total revenue in currency units (e.g. USD) from paid Stripe invoices."""
+    try:
+        from djstripe.models import Invoice as StripeInvoice
+        total_cents = sum(
+            (inv.stripe_data or {}).get("amount_paid", 0)
+            for inv in StripeInvoice.objects.all()
+        )
+        return round(total_cents / 100, 2)
+    except Exception:
+        return 0
+
+
 def dashboard_callback(request, context):
     now = timezone.now()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -19,6 +40,9 @@ def dashboard_callback(request, context):
         subscription_plan=CompanyProfile.SubscriptionPlan.PAID
     ).count()
     free_companies = total_companies - paid_companies
+
+    total_chats = _get_total_chats()
+    total_revenue = _get_total_revenue()
 
     active_pct = round(active_users / total_users * 100) if total_users else 0
     verified_pct = round(verified_users / total_users * 100) if total_users else 0
@@ -62,6 +86,18 @@ def dashboard_callback(request, context):
                     "metric": paid_companies,
                     "icon": "workspace_premium",
                     "description": f"{paid_pct}% conversion",
+                },
+                {
+                    "title": "Total Chats",
+                    "metric": total_chats,
+                    "icon": "chat",
+                    "description": "All time chat sessions",
+                },
+                {
+                    "title": "Total Revenue",
+                    "metric": f"${total_revenue}",
+                    "icon": "payments",
+                    "description": "From paid Stripe invoices",
                 },
             ],
             "recent_users": User.objects.order_by("-date_joined")[:8],
