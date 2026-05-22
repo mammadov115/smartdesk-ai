@@ -25,6 +25,24 @@ services:
       timeout: 5s
       retries: 5
 
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    ports:
+      - "6432:5432"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=smartdesk-ai_db
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=1000
+      - DEFAULT_POOL_SIZE=20
+      - AUTH_TYPE=scram-sha-256
+    depends_on:
+      db:
+        condition: service_healthy
+
   mailpit:
     image: axllent/mailpit:latest
     ports:

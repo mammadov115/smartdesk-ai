@@ -194,3 +194,17 @@ git-merge-dev:
 
 celery-run: ## Run Celery worker
 	uv run --env-file .envs/.local/.env celery -A config.celery_app worker --loglevel=info
+
+
+# ==============================================================================
+# Performance Testing
+# ==============================================================================
+.PHONY: perf-test perf-test-headless
+
+perf-test: ## Launch Locust web UI — open http://localhost:8089 to configure the run
+	uv run --group dev locust -f tests/performance/locustfile.py --host http://localhost:8000
+
+perf-test-headless: ## Headless run: 100 users, 10 spawn/s, 60 s (set LOCUST_EMAIL / LOCUST_PASSWORD to override credentials)
+	uv run --group dev locust -f tests/performance/locustfile.py \
+		--host http://localhost:8000 \
+		--headless -u 100 -r 10 --run-time 60s
