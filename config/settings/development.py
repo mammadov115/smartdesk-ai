@@ -7,7 +7,7 @@ ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
     default=[
         "localhost",
-        "0.0.0.0",
+        "0.0.0.0",  # nosec B104
         "127.0.0.1",
         "192.168.1.90",
         "juniper-fester-married.ngrok-free.dev",

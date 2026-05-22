@@ -96,24 +96,13 @@ django-runserver: ## Run server
 # Code Quality
 # ==============================================================================
 
-.PHONY: lint lint-fix format scan scan-ci
+.PHONY: ruff-format bandit
 
-lint: ## Run ruff linter
-	$(DC) exec web ruff check .
+ruff-format: ## Format and lint with ruff
+	uv run --group dev ruff format . && uv run --group dev ruff check --fix .
 
-lint-fix: ## Run ruff linter with --fix to auto-fix issues
-	$(DC) exec web ruff check . --fix
-
-format: ## Run ruff formatter
-	$(DC) exec web ruff format .
-
-scan: ## Run security scanning tools (bandit, safety)
-	$(DC) exec web bandit -r apps/ config/
-	$(DC) exec web safety check
-
-scan-ci: ## Run security scanning tools (CI mode)
-	$(DC_CI) bandit -r apps/ config/
-	$(DC_CI) safety check
+bandit: ## Run bandit security scan
+	uv run --group dev bandit -r apps config -c pyproject.toml
 
 # ==============================================================================
 # Testing

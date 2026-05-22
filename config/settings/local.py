@@ -6,7 +6,7 @@ ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
     default=[
         "localhost",
-        "0.0.0.0",
+        "0.0.0.0",  # nosec B104
         "127.0.0.1",
         "192.168.1.90",
         "juniper-fester-married.ngrok-free.dev",
@@ -33,6 +33,11 @@ CACHES = {
 }
 
 if DEBUG:
-    INSTALLED_APPS += ["debug_toolbar"]
-    MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware", *MIDDLEWARE]
+    INSTALLED_APPS += ["debug_toolbar", "nplusone.ext.django"]
+    MIDDLEWARE = [
+        "nplusone.ext.django.middleware.NPlusOneMiddleware",
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+        *MIDDLEWARE,
+    ]
     INTERNAL_IPS = env.list("DJANGO_INTERNAL_IPS", default=["127.0.0.1"])
+    NPLUSONE_RAISE = True
