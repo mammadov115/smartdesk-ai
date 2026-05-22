@@ -1,4 +1,3 @@
-
 # UNFOLD ADMIN
 # ------------------------------------------------------------------------------
 # https://unfoldadmin.com/docs/configuration/

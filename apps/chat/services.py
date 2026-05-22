@@ -141,22 +141,23 @@ def escalate_to_operator(session) -> None:
     # any potential circular dependency at module load time).
     try:
         from apps.notifications.tasks import notify_operator_handoff
+
         notify_operator_handoff.delay(session.pk)
     except Exception:
-        logger.exception(
-            "Failed to queue operator handoff notification for session %s", session.pk
-        )
+        logger.exception("Failed to queue operator handoff notification for session %s", session.pk)
 
 
 # ---------------------------------------------------------------------------
 # Session creation helpers (billing coordination)
 # ---------------------------------------------------------------------------
 
+
 def check_session_creation_allowed(user) -> None:
     """Raise ValidationError if the user's company has hit its monthly conversation limit."""
     company = getattr(user, "company_profile", None)
     if company:
         from apps.billing.services import check_conversation_limit
+
         check_conversation_limit(company)
 
 
@@ -165,12 +166,14 @@ def record_session_created(user) -> None:
     company = getattr(user, "company_profile", None)
     if company:
         from apps.billing.services import increment_conversations
+
         increment_conversations(company)
 
 
 # ---------------------------------------------------------------------------
 # Ask / RAG orchestration
 # ---------------------------------------------------------------------------
+
 
 def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[name-defined]
     """
@@ -212,14 +215,13 @@ def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[n
 
     if result.get("is_fallback") and session.status == ChatSession.Status.AI:
         from apps.billing.services import is_operator_allowed
+
         if is_operator_allowed(company_profile):
             try:
                 escalate_to_operator(session)
             except Exception:
                 logger.exception("Failed to escalate session %s to operator", session.pk)
         else:
-            logger.debug(
-                "Operator escalation skipped for session %s — free plan.", session.pk
-            )
+            logger.debug("Operator escalation skipped for session %s — free plan.", session.pk)
 
     return assistant_msg

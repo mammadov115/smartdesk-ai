@@ -1,13 +1,13 @@
-from drf_spectacular.utils import OpenApiResponse
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
-from .serializers import CompanyProfileSerializer
-from .serializers import EmailVerificationSerializer
-from .serializers import ForgotPasswordSerializer
-from .serializers import LoginSerializer
-from .serializers import PasswordResetSerializer
-from .serializers import RegistrationSerializer
-
+from .serializers import (
+    CompanyProfileSerializer,
+    EmailVerificationSerializer,
+    ForgotPasswordSerializer,
+    LoginSerializer,
+    PasswordResetSerializer,
+    RegistrationSerializer,
+)
 
 registration_schema = extend_schema(
     summary="Register a company owner",

@@ -1,9 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import AllowedDomain
-from .models import CompanyProfile
-from .models import User
+from .models import AllowedDomain, CompanyProfile, User
 
 
 class RegistrationSerializer(serializers.Serializer):

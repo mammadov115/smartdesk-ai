@@ -34,6 +34,7 @@ def is_operator_allowed(company: CompanyProfile | None) -> bool:
 # Monthly usage helpers
 # ---------------------------------------------------------------------------
 
+
 def get_or_create_current_usage(company: CompanyProfile):
     from .models import MonthlyUsage
 
@@ -87,7 +88,9 @@ def increment_conversations(company: CompanyProfile) -> None:
 
     now = timezone.now()
     MonthlyUsage.objects.filter(
-        company=company, year=now.year, month=now.month,
+        company=company,
+        year=now.year,
+        month=now.month,
     ).update(conversations_count=F("conversations_count") + 1)
 
 
@@ -96,7 +99,9 @@ def increment_documents(company: CompanyProfile) -> None:
 
     now = timezone.now()
     MonthlyUsage.objects.filter(
-        company=company, year=now.year, month=now.month,
+        company=company,
+        year=now.year,
+        month=now.month,
     ).update(documents_count=F("documents_count") + 1)
 
 
@@ -127,6 +132,7 @@ def get_current_usage(user) -> dict:
 # ---------------------------------------------------------------------------
 # Stripe session helpers
 # ---------------------------------------------------------------------------
+
 
 def _get_or_create_customer(user) -> djstripe.models.Customer:
     customer, _ = djstripe.models.Customer.get_or_create(subscriber=user)
@@ -160,6 +166,7 @@ def create_portal_session(user) -> str:
 # ---------------------------------------------------------------------------
 # Invoice history
 # ---------------------------------------------------------------------------
+
 
 def get_invoices(user) -> list:
     """Return serializable invoice dicts for the user's Stripe invoices, newest first."""

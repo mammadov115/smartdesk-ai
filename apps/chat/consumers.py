@@ -74,10 +74,14 @@ class CustomerConsumer(AsyncWebsocketConsumer):
         session = await _get_customer_session(self.session_id, user)
         if session is None or session.status != ChatSession.Status.LIVE:
             # Only allow live messages when an operator has joined
-            await self.send(text_data=json.dumps({
-                "type": "error",
-                "detail": "No operator is available yet.",
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "error",
+                        "detail": "No operator is available yet.",
+                    }
+                )
+            )
             return
 
         msg = await _save_message(session, ChatMessage.Role.USER, content)
@@ -95,12 +99,16 @@ class CustomerConsumer(AsyncWebsocketConsumer):
     # ── channel layer event handlers ──────────────────────────────────────────
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            "message_id": event["message_id"],
-            "role": event["role"],
-            "content": event["content"],
-            "created_at": event["created_at"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "message_id": event["message_id"],
+                    "role": event["role"],
+                    "content": event["content"],
+                    "created_at": event["created_at"],
+                }
+            )
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -200,20 +208,28 @@ class OperatorConsumer(AsyncWebsocketConsumer):
     # ── channel layer event handlers ──────────────────────────────────────────
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            "message_id": event["message_id"],
-            "role": event["role"],
-            "content": event["content"],
-            "created_at": event["created_at"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "message_id": event["message_id"],
+                    "role": event["role"],
+                    "content": event["content"],
+                    "created_at": event["created_at"],
+                }
+            )
+        )
 
     async def escalation_notification(self, event):
         """Notify this operator that another session needs attention."""
-        await self.send(text_data=json.dumps({
-            "type": "escalation",
-            "session_id": event["session_id"],
-            "owner_email": event["owner_email"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "escalation",
+                    "session_id": event["session_id"],
+                    "owner_email": event["owner_email"],
+                }
+            )
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -258,4 +274,5 @@ def _save_message(session: ChatSession, role: str, content: str) -> ChatMessage:
 
 def _now_iso() -> str:
     from datetime import datetime
+
     return datetime.now(tz=timezone.utc).isoformat()

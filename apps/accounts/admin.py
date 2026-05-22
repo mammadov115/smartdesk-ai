@@ -1,12 +1,10 @@
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import ChoicesDropdownFilter
 from unfold.decorators import action as unfold_action
 from unfold.decorators import display
 
-from .models import CompanyProfile
-from .models import User
+from .models import CompanyProfile, User
 
 
 @admin.register(User)
@@ -63,28 +61,24 @@ class CompanyProfileAdmin(ModelAdmin):
 
     @unfold_action(description="Block selected companies (deactivate owner accounts)")
     def block_companies(self, request, queryset):
-        updated = User.objects.filter(
-            pk__in=queryset.values("owner_id"), is_active=True
-        ).update(is_active=False)
+        updated = User.objects.filter(pk__in=queryset.values("owner_id"), is_active=True).update(is_active=False)
         self.message_user(request, f"{updated} company owner(s) blocked.", messages.WARNING)
 
     @unfold_action(description="Activate selected companies (re-enable owner accounts)")
     def activate_companies(self, request, queryset):
-        updated = User.objects.filter(
-            pk__in=queryset.values("owner_id"), is_active=False
-        ).update(is_active=True)
+        updated = User.objects.filter(pk__in=queryset.values("owner_id"), is_active=False).update(is_active=True)
         self.message_user(request, f"{updated} company owner(s) activated.", messages.SUCCESS)
 
     @unfold_action(description="Change plan → Paid")
     def set_plan_paid(self, request, queryset):
-        updated = queryset.filter(
-            subscription_plan=CompanyProfile.SubscriptionPlan.FREE
-        ).update(subscription_plan=CompanyProfile.SubscriptionPlan.PAID)
+        updated = queryset.filter(subscription_plan=CompanyProfile.SubscriptionPlan.FREE).update(
+            subscription_plan=CompanyProfile.SubscriptionPlan.PAID
+        )
         self.message_user(request, f"{updated} company plan(s) upgraded to Paid.", messages.SUCCESS)
 
     @unfold_action(description="Change plan → Free")
     def set_plan_free(self, request, queryset):
-        updated = queryset.filter(
-            subscription_plan=CompanyProfile.SubscriptionPlan.PAID
-        ).update(subscription_plan=CompanyProfile.SubscriptionPlan.FREE)
+        updated = queryset.filter(subscription_plan=CompanyProfile.SubscriptionPlan.PAID).update(
+            subscription_plan=CompanyProfile.SubscriptionPlan.FREE
+        )
         self.message_user(request, f"{updated} company plan(s) downgraded to Free.", messages.WARNING)

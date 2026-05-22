@@ -1,8 +1,9 @@
-from .redis import REDIS_URL, REDIS_SSL
-from .general import USE_TZ, TIME_ZONE
 import ssl
+
 from celery.schedules import crontab
 
+from .general import TIME_ZONE, USE_TZ
+from .redis import REDIS_SSL, REDIS_URL
 
 # Celery
 # ------------------------------------------------------------------------------

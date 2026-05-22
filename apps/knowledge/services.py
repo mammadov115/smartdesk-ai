@@ -22,6 +22,7 @@ def _get_openai_client() -> OpenAI:
 # Text extraction
 # ---------------------------------------------------------------------------
 
+
 def extract_text(document: KnowledgeDocument) -> str:
     """Return raw text from a document based on its source_type."""
     st = document.source_type
@@ -40,9 +41,7 @@ def extract_text(document: KnowledgeDocument) -> str:
         from pypdf import PdfReader  # noqa: PLC0415
 
         reader = PdfReader(io.BytesIO(document.file.read()))
-        return "\n\n".join(
-            page.extract_text() or "" for page in reader.pages
-        )
+        return "\n\n".join(page.extract_text() or "" for page in reader.pages)
 
     if st == KnowledgeDocument.SourceType.DOCX:
         from docx import Document as DocxDocument  # noqa: PLC0415
@@ -56,6 +55,7 @@ def extract_text(document: KnowledgeDocument) -> str:
 # ---------------------------------------------------------------------------
 # Chunking
 # ---------------------------------------------------------------------------
+
 
 def chunk_text(text: str) -> list[str]:
     """
@@ -83,6 +83,7 @@ def chunk_text(text: str) -> list[str]:
 # Embeddings
 # ---------------------------------------------------------------------------
 
+
 def generate_embedding(text: str) -> list[float]:
     """Call OpenAI Embeddings API and return the embedding vector."""
     client = _get_openai_client()
@@ -96,6 +97,7 @@ def generate_embedding(text: str) -> list[float]:
 # ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
+
 
 def process_document(document: KnowledgeDocument) -> None:
     """

@@ -1,10 +1,7 @@
-from django.urls import include
-from django.urls import path
+from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import AllowedDomainViewSet
-from .views import AuthViewSet
-from .views import CompanyProfileViewSet
+from .views import AllowedDomainViewSet, AuthViewSet, CompanyProfileViewSet
 
 app_name = "accounts"
 

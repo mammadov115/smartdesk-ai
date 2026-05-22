@@ -44,34 +44,30 @@ def check_limit_warnings() -> None:
     from .models import MonthlyUsage
 
     now = timezone.now()
-    free_companies = (
-        CompanyProfile.objects
-        .filter(subscription_plan=CompanyProfile.SubscriptionPlan.FREE)
-        .select_related("owner")
-    )
+    free_companies = CompanyProfile.objects.filter(
+        subscription_plan=CompanyProfile.SubscriptionPlan.FREE
+    ).select_related("owner")
     for company in free_companies:
         usage, _ = MonthlyUsage.objects.get_or_create(
-            company=company, year=now.year, month=now.month,
+            company=company,
+            year=now.year,
+            month=now.month,
         )
         if usage.limit_warning_sent:
             continue
 
         warnings = []
         if usage.conversations_count >= _FREE_LIMITS["conversations"] * _WARNING_THRESHOLD:
-            warnings.append(
-                f"Conversations: {usage.conversations_count}/{_FREE_LIMITS['conversations']}"
-            )
+            warnings.append(f"Conversations: {usage.conversations_count}/{_FREE_LIMITS['conversations']}")
         if usage.documents_count >= _FREE_LIMITS["documents"] * _WARNING_THRESHOLD:
-            warnings.append(
-                f"Documents: {usage.documents_count}/{_FREE_LIMITS['documents']}"
-            )
+            warnings.append(f"Documents: {usage.documents_count}/{_FREE_LIMITS['documents']}")
         if not warnings:
             continue
 
         subject = f"[{company.name}] You're approaching your plan limits"
         body = (
-            f"Hi,\n\n"
-            f"You are approaching your monthly limits on the free plan:\n\n"
+            "Hi,\n\n"
+            "You are approaching your monthly limits on the free plan:\n\n"
             + "\n".join(f"  \u2022 {w}" for w in warnings)
             + "\n\nUpgrade to a paid plan for unlimited usage.\n\n\u2014 SmartDesk AI"
         )

@@ -33,9 +33,7 @@ class KnowledgeDocumentSerializer(serializers.ModelSerializer):
 
         if source_type == KnowledgeDocument.SourceType.FAQ:
             if not question or not answer:
-                raise serializers.ValidationError(
-                    "Both 'question' and 'answer' are required for FAQ entries."
-                )
+                raise serializers.ValidationError("Both 'question' and 'answer' are required for FAQ entries.")
             attrs["raw_text"] = f"Q: {question}\nA: {answer}"
 
         elif source_type in (
@@ -44,14 +42,10 @@ class KnowledgeDocumentSerializer(serializers.ModelSerializer):
             KnowledgeDocument.SourceType.TXT,
         ):
             if not file:
-                raise serializers.ValidationError(
-                    f"A file is required for source_type '{source_type}'."
-                )
+                raise serializers.ValidationError(f"A file is required for source_type '{source_type}'.")
 
         elif source_type == KnowledgeDocument.SourceType.TEXT:
             if not raw_text.strip():
-                raise serializers.ValidationError(
-                    "'raw_text' is required for source_type 'text'."
-                )
+                raise serializers.ValidationError("'raw_text' is required for source_type 'text'.")
 
         return attrs

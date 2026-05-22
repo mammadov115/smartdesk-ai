@@ -5,29 +5,35 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from .schemas import company_profile_schema
-from .schemas import email_verification_schema
-from .schemas import forgot_password_schema
-from .schemas import login_schema
-from .schemas import logout_schema
-from .schemas import password_reset_schema
-from .schemas import registration_schema
-from .serializers import AllowedDomainSerializer
-from .serializers import CompanyProfileSerializer
-from .serializers import EmailVerificationSerializer
-from .serializers import ForgotPasswordSerializer
-from .serializers import LoginSerializer
-from .serializers import LogoutSerializer
-from .serializers import PasswordResetSerializer
-from .serializers import RegistrationSerializer
-from .services import get_or_update_company_profile
-from .services import login_user
-from .services import logout_user
-from .services import register_company_owner
-from .services import request_password_reset
+from .models import AllowedDomain
+from .schemas import (
+    company_profile_schema,
+    email_verification_schema,
+    forgot_password_schema,
+    login_schema,
+    logout_schema,
+    password_reset_schema,
+    registration_schema,
+)
+from .serializers import (
+    AllowedDomainSerializer,
+    CompanyProfileSerializer,
+    EmailVerificationSerializer,
+    ForgotPasswordSerializer,
+    LoginSerializer,
+    LogoutSerializer,
+    PasswordResetSerializer,
+    RegistrationSerializer,
+)
+from .services import (
+    get_or_update_company_profile,
+    login_user,
+    logout_user,
+    register_company_owner,
+    request_password_reset,
+)
 from .services import reset_password as reset_password_service
 from .services import verify_email as verify_email_service
-from .models import AllowedDomain
 
 
 class AuthViewSet(ViewSet):

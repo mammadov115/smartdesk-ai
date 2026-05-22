@@ -2,22 +2,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.urls import include
-from django.urls import path
+from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from drf_spectacular.views import (
     SpectacularAPIView,
-    SpectacularSwaggerView,
     SpectacularRedocView,
+    SpectacularSwaggerView,
 )
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
-
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
-
     path("", include("apps.accounts.urls")),
     path("", include("apps.billing.urls")),
     path("", include("apps.knowledge.urls")),
@@ -25,17 +22,14 @@ urlpatterns = [
     path("", include("apps.analytics.urls")),
     path("", include("apps.notifications.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
-
     # schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-
     # swagger
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
-
     # redoc
     path(
         "api/redoc/",

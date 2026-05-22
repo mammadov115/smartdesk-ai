@@ -32,9 +32,7 @@ class ChatSessionAdmin(ModelAdmin):
     readonly_fields = ("owner", "status", "operator", "created_at", "updated_at")
     inlines = [ChatMessageInline]
 
-    fieldsets = (
-        ("Session", {"fields": ("owner", "status", "operator", "created_at", "updated_at")}),
-    )
+    fieldsets = (("Session", {"fields": ("owner", "status", "operator", "created_at", "updated_at")}),)
 
     def has_add_permission(self, request):
         return False

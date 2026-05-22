@@ -6,6 +6,7 @@ from .models import CompanyProfile, User
 def _get_total_chats():
     try:
         from apps.chat.models import ChatSession
+
         return ChatSession.objects.count()
     except Exception:
         return 0
@@ -15,10 +16,8 @@ def _get_total_revenue():
     """Return total revenue in currency units (e.g. USD) from paid Stripe invoices."""
     try:
         from djstripe.models import Invoice as StripeInvoice
-        total_cents = sum(
-            (inv.stripe_data or {}).get("amount_paid", 0)
-            for inv in StripeInvoice.objects.all()
-        )
+
+        total_cents = sum((inv.stripe_data or {}).get("amount_paid", 0) for inv in StripeInvoice.objects.all())
         return round(total_cents / 100, 2)
     except Exception:
         return 0
@@ -36,9 +35,7 @@ def dashboard_callback(request, context):
     new_this_week = User.objects.filter(date_joined__gte=week_ago).count()
 
     total_companies = CompanyProfile.objects.count()
-    paid_companies = CompanyProfile.objects.filter(
-        subscription_plan=CompanyProfile.SubscriptionPlan.PAID
-    ).count()
+    paid_companies = CompanyProfile.objects.filter(subscription_plan=CompanyProfile.SubscriptionPlan.PAID).count()
     free_companies = total_companies - paid_companies
 
     total_chats = _get_total_chats()

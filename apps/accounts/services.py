@@ -1,20 +1,17 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.db import transaction
 from django.urls import reverse
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import CompanyProfile
-from .models import User
-from .utils import decode_uid
-from .utils import encode_uid
-from .utils import email_verification_token_generator
+from .models import CompanyProfile, User
+from .utils import decode_uid, email_verification_token_generator, encode_uid
 
 
 def _send_mail(subject, message, recipient_email):
@@ -62,14 +59,8 @@ def register_company_owner(validated_data, request=None):
 
     verify_path = reverse("accounts:auth-verify-email")
     verify_url = _build_absolute_url(request, verify_path)
-    verify_url = (
-        f"{verify_url}?uid={encode_uid(user)}"
-        f"&token={email_verification_token_generator.make_token(user)}"
-    )
-    message = (
-        "Welcome to Smartdesk-ai.\n\n"
-        f"Verify your email by visiting: {verify_url}\n"
-    )
+    verify_url = f"{verify_url}?uid={encode_uid(user)}&token={email_verification_token_generator.make_token(user)}"
+    message = f"Welcome to Smartdesk-ai.\n\nVerify your email by visiting: {verify_url}\n"
     _send_mail("Verify your email", message, user.email)
 
     return user
@@ -79,7 +70,7 @@ def register_company_owner(validated_data, request=None):
 def verify_email(uidb64, token):
     try:
         user = User.objects.get(pk=decode_uid(uidb64))
-    except (ObjectDoesNotExist, ValueError):
+    except ObjectDoesNotExist, ValueError:
         return None
 
     if not email_verification_token_generator.check_token(user, token):
@@ -123,8 +114,7 @@ def request_password_reset(email, request=None):
     reset_url = _build_absolute_url(request, reset_path)
     reset_url = f"{reset_url}?uid={encode_uid(user)}&token={default_token_generator.make_token(user)}"
     message = (
-        "We received a password reset request for your account.\n\n"
-        f"Reset your password by visiting: {reset_url}\n"
+        f"We received a password reset request for your account.\n\nReset your password by visiting: {reset_url}\n"
     )
     _send_mail("Reset your password", message, user.email)
     return user
@@ -134,7 +124,7 @@ def request_password_reset(email, request=None):
 def reset_password(uidb64, token, password):
     try:
         user = User.objects.get(pk=decode_uid(uidb64))
-    except (ObjectDoesNotExist, ValueError):
+    except ObjectDoesNotExist, ValueError:
         return None
 
     if not default_token_generator.check_token(user, token):

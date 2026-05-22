@@ -19,7 +19,7 @@ def _get_user_from_token(raw_token: str):
     try:
         token = AccessToken(raw_token)
         return User.objects.get(pk=token["user_id"])
-    except (InvalidToken, TokenError, User.DoesNotExist, KeyError):
+    except InvalidToken, TokenError, User.DoesNotExist, KeyError:
         return AnonymousUser()
 
 
@@ -72,10 +72,6 @@ class JWTAuthMiddleware(BaseMiddleware):
                 return await super().__call__(scope, receive, send)
 
             token_list = params.get("token", [])
-            scope["user"] = (
-                await _get_user_from_token(token_list[0])
-                if token_list
-                else AnonymousUser()
-            )
+            scope["user"] = await _get_user_from_token(token_list[0]) if token_list else AnonymousUser()
 
         return await super().__call__(scope, receive, send)

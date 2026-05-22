@@ -39,8 +39,7 @@ class NotificationPreference(models.Model):
     notification_email = models.EmailField(
         blank=True,
         help_text=(
-            "Override the email address that receives notifications. "
-            "Defaults to the company owner's email when blank."
+            "Override the email address that receives notifications. Defaults to the company owner's email when blank."
         ),
     )
 

@@ -18,7 +18,6 @@ Environment variables:
   LOCUST_PASSWORD   Test account password          (default: StrongPass1!)
 """
 
-import json
 import os
 import random
 import time
@@ -48,6 +47,7 @@ SAMPLE_QUESTIONS = [
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _fire_ws_event(name: str, start: float, exc: Exception | None = None, length: int = 0) -> None:
     """Report a WebSocket timing to Locust's event system."""
     events.request.fire(
@@ -62,6 +62,7 @@ def _fire_ws_event(name: str, start: float, exc: Exception | None = None, length
 # ---------------------------------------------------------------------------
 # REST API user  (80 % of virtual users)
 # ---------------------------------------------------------------------------
+
 
 class ApiUser(HttpUser):
     """
@@ -180,6 +181,7 @@ class ApiUser(HttpUser):
 # ---------------------------------------------------------------------------
 # WebSocket user  (20 % of virtual users)
 # ---------------------------------------------------------------------------
+
 
 class WebSocketUser(HttpUser):
     """

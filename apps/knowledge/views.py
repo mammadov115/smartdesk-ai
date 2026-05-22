@@ -27,6 +27,7 @@ class KnowledgeDocumentViewSet(
         company = getattr(self.request.user, "company_profile", None)
         if company:
             from apps.billing.services import check_document_limit, increment_documents
+
             check_document_limit(company)
         document = serializer.save(
             owner=self.request.user,
@@ -38,8 +39,7 @@ class KnowledgeDocumentViewSet(
             process_document_task.delay(document.pk)
         except Exception:
             logger.exception(
-                "Failed to enqueue process_document_task for document %s. "
-                "Is the Celery broker (Redis) reachable?",
+                "Failed to enqueue process_document_task for document %s. Is the Celery broker (Redis) reachable?",
                 document.pk,
             )
             document.status = KnowledgeDocument.Status.FAILED

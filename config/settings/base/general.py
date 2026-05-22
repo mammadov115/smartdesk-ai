@@ -1,5 +1,6 @@
-import environ
 from pathlib import Path
+
+import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent.parent
 # apps/

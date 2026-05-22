@@ -1,8 +1,7 @@
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 
 from .managers import UserManager
