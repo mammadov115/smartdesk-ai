@@ -68,3 +68,26 @@ def on_subscription_deleted(sender, event, **kwargs):
             subscription_plan=CompanyProfile.SubscriptionPlan.FREE
         )
         logger.info("Plan downgraded to FREE for user %s", user.email)
+
+
+@receiver(WEBHOOK_SIGNALS["customer.subscription.updated"])
+def on_subscription_updated(sender, event, **kwargs):
+    """
+    Subscription updated via Customer Portal (plan change, cancel at period end, etc.).
+    Syncs subscription_plan field to match the current Stripe status.
+    """
+    subscription = event.data["object"]
+    user = _user_from_customer(subscription.get("customer"))
+    if not user:
+        return
+    status_val = subscription.get("status", "")
+    if status_val in ("active", "trialing"):
+        CompanyProfile.objects.filter(owner=user).update(
+            subscription_plan=CompanyProfile.SubscriptionPlan.PAID
+        )
+        logger.info("Plan confirmed PAID (subscription.updated) for user %s", user.email)
+    elif status_val in ("canceled", "incomplete_expired", "unpaid"):
+        CompanyProfile.objects.filter(owner=user).update(
+            subscription_plan=CompanyProfile.SubscriptionPlan.FREE
+        )
+        logger.info("Plan downgraded to FREE (subscription.updated) for user %s", user.email)

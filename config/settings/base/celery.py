@@ -51,6 +51,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.send_weekly_analytics_summary",
         "schedule": crontab(hour=8, minute=0, day_of_week="monday"),
     },
+    # Reset monthly usage counters at 00:05 on the 1st of each month.
+    "reset-monthly-usage": {
+        "task": "apps.billing.tasks.reset_monthly_usage",
+        "schedule": crontab(day_of_month=1, hour=0, minute=5),
+    },
+    # Check daily at 09:00 whether any company has hit 80 % of their plan limits.
+    "check-limit-warnings": {
+        "task": "apps.billing.tasks.check_limit_warnings",
+        "schedule": crontab(hour=9, minute=0),
+    },
 }
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-send-task-events
 CELERY_WORKER_SEND_TASK_EVENTS = True

@@ -24,10 +24,16 @@ class KnowledgeDocumentViewSet(
         return KnowledgeDocument.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
+        company = getattr(self.request.user, "company_profile", None)
+        if company:
+            from apps.billing.services import check_document_limit, increment_documents
+            check_document_limit(company)
         document = serializer.save(
             owner=self.request.user,
             status=KnowledgeDocument.Status.PROCESSING,
         )
+        if company:
+            increment_documents(company)
         try:
             process_document_task.delay(document.pk)
         except Exception:

@@ -386,3 +386,59 @@ class InvoiceAdmin(ModelAdmin):
     @display(description="Invoice PDF")
     def display_invoice_pdf(self, obj):
         return self._sd(obj).get("invoice_pdf") or "—"
+
+
+# ---------------------------------------------------------------------------
+# MonthlyUsage
+# ---------------------------------------------------------------------------
+
+from .models import MonthlyUsage  # noqa: E402
+
+
+@admin.register(MonthlyUsage)
+class MonthlyUsageAdmin(ModelAdmin):
+    list_display = (
+        "company",
+        "display_period",
+        "conversations_count",
+        "documents_count",
+        "limit_warning_sent",
+    )
+    list_filter = ("limit_warning_sent",)
+    search_fields = ("company__name", "company__owner__email")
+    readonly_fields = (
+        "company",
+        "year",
+        "month",
+        "conversations_count",
+        "documents_count",
+        "limit_warning_sent",
+    )
+    fieldsets = (
+        (
+            "Company",
+            {
+                "fields": ("company",),
+            },
+        ),
+        (
+            "Period",
+            {
+                "fields": ("year", "month"),
+            },
+        ),
+        (
+            "Usage",
+            {
+                "fields": (
+                    "conversations_count",
+                    "documents_count",
+                    "limit_warning_sent",
+                ),
+            },
+        ),
+    )
+
+    @display(description="Period")
+    def display_period(self, obj):
+        return f"{obj.year}/{obj.month:02d}"

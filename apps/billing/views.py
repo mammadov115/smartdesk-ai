@@ -6,6 +6,8 @@ from rest_framework.response import Response
 
 from .services import create_checkout_session
 from .services import create_portal_session
+from .services import get_current_usage
+from .services import get_invoices
 
 
 @api_view(["POST"])
@@ -29,3 +31,15 @@ def portal(request):
     except stripe.StripeError as exc:
         return Response({"detail": str(exc)}, status=400)
     return Response({"portal_url": url})
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def invoices(request):
+    return Response(get_invoices(request.user))
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def usage(request):
+    return Response(get_current_usage(request.user))

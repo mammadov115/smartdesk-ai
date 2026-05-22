@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,11 +7,13 @@ from rest_framework.viewsets import GenericViewSet
 from apps.accounts.models import CompanyProfile
 from apps.accounts.serializers import WidgetConfigSerializer
 
-from .models import ChatMessage, ChatSession
+from .models import ChatSession
 from .serializers import AskSerializer, ChatMessageSerializer, ChatSessionSerializer
-from .services import FALLBACK_ANSWER, answer_question, escalate_to_operator
-
-logger = logging.getLogger(__name__)
+from .services import (
+    check_session_creation_allowed,
+    handle_ask,
+    record_session_created,
+)
 
 
 class WidgetConfigView(APIView):
@@ -60,7 +60,9 @@ class ChatSessionViewSet(
         return ChatSessionSerializer
 
     def perform_create(self, serializer):
+        check_session_creation_allowed(self.request.user)
         serializer.save(owner=self.request.user)
+        record_session_created(self.request.user)
 
     @action(detail=True, methods=["post"])
     def ask(self, request, pk=None):
@@ -70,42 +72,7 @@ class ChatSessionViewSet(
         serializer.is_valid(raise_exception=True)
         question = serializer.validated_data["question"]
 
-        # Persist the user turn (embedding added after RAG pipeline runs)
-        user_msg = ChatMessage.objects.create(
-            session=session,
-            role=ChatMessage.Role.USER,
-            content=question,
-        )
-
-        # Resolve company profile (gracefully handles missing profiles)
-        company_profile = getattr(request.user, "company_profile", None)
-
-        # Run the RAG pipeline; fall back gracefully on unexpected errors
-        try:
-            result = answer_question(question, request.user, company_profile)
-        except Exception:
-            logger.exception("RAG pipeline error for session %s", session.pk)
-            result = {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
-
-        # Persist the question embedding for analytics clustering
-        if result.get("embedding") is not None:
-            user_msg.embedding = result["embedding"]
-            user_msg.save(update_fields=["embedding"])
-
-        # Persist the assistant turn
-        assistant_msg = ChatMessage.objects.create(
-            session=session,
-            role=ChatMessage.Role.ASSISTANT,
-            content=result["answer"],
-            sources=result["sources"],
-        )
-
-        # Escalate to operator on the first fallback in this session
-        if result.get("is_fallback") and session.status == ChatSession.Status.AI:
-            try:
-                escalate_to_operator(session)
-            except Exception:
-                logger.exception("Failed to escalate session %s to operator", session.pk)
+        assistant_msg = handle_ask(session, question, request.user)
 
         return Response(
             ChatMessageSerializer(assistant_msg).data,

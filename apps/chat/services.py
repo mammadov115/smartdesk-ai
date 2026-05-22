@@ -146,3 +146,80 @@ def escalate_to_operator(session) -> None:
         logger.exception(
             "Failed to queue operator handoff notification for session %s", session.pk
         )
+
+
+# ---------------------------------------------------------------------------
+# Session creation helpers (billing coordination)
+# ---------------------------------------------------------------------------
+
+def check_session_creation_allowed(user) -> None:
+    """Raise ValidationError if the user's company has hit its monthly conversation limit."""
+    company = getattr(user, "company_profile", None)
+    if company:
+        from apps.billing.services import check_conversation_limit
+        check_conversation_limit(company)
+
+
+def record_session_created(user) -> None:
+    """Increment the monthly conversation counter after a session is persisted."""
+    company = getattr(user, "company_profile", None)
+    if company:
+        from apps.billing.services import increment_conversations
+        increment_conversations(company)
+
+
+# ---------------------------------------------------------------------------
+# Ask / RAG orchestration
+# ---------------------------------------------------------------------------
+
+def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[name-defined]
+    """
+    Orchestrate a single ask-answer cycle:
+      1. Persist the user message.
+      2. Run the RAG pipeline (with graceful fallback on error).
+      3. Persist the question embedding for analytics clustering.
+      4. Persist the assistant message.
+      5. Escalate to operator on the first fallback in this session.
+
+    Returns the assistant ChatMessage instance.
+    """
+    from .models import ChatMessage, ChatSession  # local import avoids circular at module level
+
+    user_msg = ChatMessage.objects.create(
+        session=session,
+        role=ChatMessage.Role.USER,
+        content=question,
+    )
+
+    company_profile = getattr(user, "company_profile", None)
+
+    try:
+        result = answer_question(question, user, company_profile)
+    except Exception:
+        logger.exception("RAG pipeline error for session %s", session.pk)
+        result = {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
+
+    if result.get("embedding") is not None:
+        user_msg.embedding = result["embedding"]
+        user_msg.save(update_fields=["embedding"])
+
+    assistant_msg = ChatMessage.objects.create(
+        session=session,
+        role=ChatMessage.Role.ASSISTANT,
+        content=result["answer"],
+        sources=result["sources"],
+    )
+
+    if result.get("is_fallback") and session.status == ChatSession.Status.AI:
+        from apps.billing.services import is_operator_allowed
+        if is_operator_allowed(company_profile):
+            try:
+                escalate_to_operator(session)
+            except Exception:
+                logger.exception("Failed to escalate session %s to operator", session.pk)
+        else:
+            logger.debug(
+                "Operator escalation skipped for session %s — free plan.", session.pk
+            )
+
+    return assistant_msg
