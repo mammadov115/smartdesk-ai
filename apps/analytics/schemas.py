@@ -1,4 +1,8 @@
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+)
 
 from .serializers import (
     ConversationDetailSerializer,

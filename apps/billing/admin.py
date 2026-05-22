@@ -53,11 +53,25 @@ class CustomerAdmin(ModelAdmin):
     fieldsets = (
         (
             "Stripe",
-            {"fields": ("id", "livemode", "created", "djstripe_owner_account")},
+            {
+                "fields": (
+                    "id",
+                    "livemode",
+                    "created",
+                    "djstripe_owner_account",
+                )
+            },
         ),
         (
             "Subscriber",
-            {"fields": ("subscriber", "email", "default_payment_method", "date_purged")},
+            {
+                "fields": (
+                    "subscriber",
+                    "email",
+                    "default_payment_method",
+                    "date_purged",
+                )
+            },
         ),
         (
             "Metadata",
@@ -274,7 +288,14 @@ class InvoiceAdmin(ModelAdmin):
         ),
         (
             "Customer & subscription",
-            {"fields": ("customer", "subscription", "charge", "payment_intent")},
+            {
+                "fields": (
+                    "customer",
+                    "subscription",
+                    "charge",
+                    "payment_intent",
+                )
+            },
         ),
         (
             "Amounts",
@@ -292,7 +313,13 @@ class InvoiceAdmin(ModelAdmin):
         ),
         (
             "Dates",
-            {"fields": ("display_due_date", "display_period_start", "display_period_end")},
+            {
+                "fields": (
+                    "display_due_date",
+                    "display_period_start",
+                    "display_period_end",
+                )
+            },
         ),
         (
             "Links",

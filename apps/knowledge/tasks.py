@@ -29,4 +29,6 @@ def process_document_task(self, document_id: int) -> None:
         except self.MaxRetriesExceededError:
             document.status = KnowledgeDocument.Status.FAILED
             document.error_message = str(exc)
-            document.save(update_fields=["status", "error_message", "updated_at"])
+            document.save(
+                update_fields=["status", "error_message", "updated_at"]
+            )

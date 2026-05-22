@@ -51,7 +51,12 @@ class AuthViewSet(ViewSet):
         )
 
     @email_verification_schema
-    @action(detail=False, methods=["post"], url_path="verify-email", url_name="verify-email")
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="verify-email",
+        url_name="verify-email",
+    )
     def verify_email(self, request):
         serializer = EmailVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -60,7 +65,10 @@ class AuthViewSet(ViewSet):
             serializer.validated_data["token"],
         )
         if user is None:
-            return Response({"detail": "Invalid or expired verification token."}, status=400)
+            return Response(
+                {"detail": "Invalid or expired verification token."},
+                status=400,
+            )
         return Response({"detail": "Email verified successfully."})
 
     @login_schema
@@ -73,28 +81,51 @@ class AuthViewSet(ViewSet):
             serializer.validated_data["password"],
         )
         if tokens is None:
-            return Response({"detail": "Invalid credentials or unverified account."}, status=400)
+            return Response(
+                {"detail": "Invalid credentials or unverified account."},
+                status=400,
+            )
         return Response(tokens)
 
     @logout_schema
-    @action(detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
     def logout(self, request):
         serializer = LogoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if not logout_user(serializer.validated_data["refresh"]):
-            return Response({"detail": "Invalid or already blacklisted token."}, status=400)
+            return Response(
+                {"detail": "Invalid or already blacklisted token."}, status=400
+            )
         return Response({"detail": "Logged out successfully."})
 
     @forgot_password_schema
-    @action(detail=False, methods=["post"], url_path="password/forgot", url_name="password-forgot")
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="password/forgot",
+        url_name="password-forgot",
+    )
     def forgot_password(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request_password_reset(serializer.validated_data["email"], request=request)
-        return Response({"detail": "If the account exists, a reset email has been sent."})
+        request_password_reset(
+            serializer.validated_data["email"], request=request
+        )
+        return Response(
+            {"detail": "If the account exists, a reset email has been sent."}
+        )
 
     @password_reset_schema
-    @action(detail=False, methods=["post"], url_path="password/reset", url_name="password-reset")
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="password/reset",
+        url_name="password-reset",
+    )
     def reset_password(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -104,7 +135,9 @@ class AuthViewSet(ViewSet):
             serializer.validated_data["password"],
         )
         if user is None:
-            return Response({"detail": "Invalid or expired reset token."}, status=400)
+            return Response(
+                {"detail": "Invalid or expired reset token."}, status=400
+            )
         return Response({"detail": "Password reset successfully."})
 
 
@@ -126,10 +159,17 @@ class CompanyProfileViewSet(ViewSet):
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
-        company_profile = get_or_update_company_profile(request.user, serializer.validated_data)
+        company_profile = get_or_update_company_profile(
+            request.user, serializer.validated_data
+        )
         return Response(CompanyProfileSerializer(company_profile).data)
 
-    @action(detail=False, methods=["post"], url_path="embed-token/regenerate", url_name="embed-token-regenerate")
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="embed-token/regenerate",
+        url_name="embed-token-regenerate",
+    )
     def regenerate_embed_token(self, request):
         """Issue a fresh embed token, invalidating the previous one."""
         company = get_or_update_company_profile(request.user)
@@ -153,7 +193,9 @@ class AllowedDomainViewSet(ViewSet):
         serializer = AllowedDomainSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         domain = serializer.validated_data["domain"].lower().strip()
-        obj, created = AllowedDomain.objects.get_or_create(company=company, domain=domain)
+        obj, created = AllowedDomain.objects.get_or_create(
+            company=company, domain=domain
+        )
         status_code = 201 if created else 200
         return Response(AllowedDomainSerializer(obj).data, status=status_code)
 

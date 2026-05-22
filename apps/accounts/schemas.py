@@ -35,13 +35,19 @@ logout_schema = extend_schema(
 forgot_password_schema = extend_schema(
     summary="Request password reset",
     request=ForgotPasswordSerializer,
-    responses={200: OpenApiResponse(description="Reset email sent if the account exists.")},
+    responses={
+        200: OpenApiResponse(
+            description="Reset email sent if the account exists."
+        )
+    },
 )
 
 password_reset_schema = extend_schema(
     summary="Reset password",
     request=PasswordResetSerializer,
-    responses={200: OpenApiResponse(description="Password reset successfully.")},
+    responses={
+        200: OpenApiResponse(description="Password reset successfully.")
+    },
 )
 
 company_profile_schema = extend_schema(

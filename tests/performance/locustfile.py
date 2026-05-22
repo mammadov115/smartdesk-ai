@@ -48,7 +48,9 @@ SAMPLE_QUESTIONS = [
 # ---------------------------------------------------------------------------
 
 
-def _fire_ws_event(name: str, start: float, exc: Exception | None = None, length: int = 0) -> None:
+def _fire_ws_event(
+    name: str, start: float, exc: Exception | None = None, length: int = 0
+) -> None:
     """Report a WebSocket timing to Locust's event system."""
     events.request.fire(
         request_type="WebSocket",
@@ -235,7 +237,9 @@ class WebSocketUser(HttpUser):
             return
 
         # Step 2 — open WebSocket
-        ws_base = self.host.replace("https://", "wss://").replace("http://", "ws://")
+        ws_base = self.host.replace("https://", "wss://").replace(
+            "http://", "ws://"
+        )
         url = f"{ws_base}/ws/chat/{session_id}/?token={self.token}"
         start = time.time()
 
@@ -252,7 +256,9 @@ class WebSocketUser(HttpUser):
         ws.settimeout(3)
         try:
             raw = ws.recv()
-            _fire_ws_event("ws/chat/[id]/ receive", read_start, length=len(raw))
+            _fire_ws_event(
+                "ws/chat/[id]/ receive", read_start, length=len(raw)
+            )
         except websocket.WebSocketTimeoutException:
             pass  # no push within timeout — normal when session just opened
         except Exception as exc:

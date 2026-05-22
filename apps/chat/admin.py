@@ -24,15 +24,41 @@ class ChatMessageInline(TabularInline):
 
 @admin.register(ChatSession)
 class ChatSessionAdmin(ModelAdmin):
-    list_display = ("id", "display_owner", "display_status", "display_operator", "display_message_count", "created_at")
+    list_display = (
+        "id",
+        "display_owner",
+        "display_status",
+        "display_operator",
+        "display_message_count",
+        "created_at",
+    )
     list_filter = ("status",)
     search_fields = ("owner__email", "operator__email")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
-    readonly_fields = ("owner", "status", "operator", "created_at", "updated_at")
+    readonly_fields = (
+        "owner",
+        "status",
+        "operator",
+        "created_at",
+        "updated_at",
+    )
     inlines = [ChatMessageInline]
 
-    fieldsets = (("Session", {"fields": ("owner", "status", "operator", "created_at", "updated_at")}),)
+    fieldsets = (
+        (
+            "Session",
+            {
+                "fields": (
+                    "owner",
+                    "status",
+                    "operator",
+                    "created_at",
+                    "updated_at",
+                )
+            },
+        ),
+    )
 
     def has_add_permission(self, request):
         return False

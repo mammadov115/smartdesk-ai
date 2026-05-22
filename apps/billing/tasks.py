@@ -31,7 +31,11 @@ def reset_monthly_usage() -> None:
             year=now.year,
             month=now.month,
         )
-    logger.info("reset_monthly_usage: pre-created rows for %d/%02d", now.year, now.month)
+    logger.info(
+        "reset_monthly_usage: pre-created rows for %d/%02d",
+        now.year,
+        now.month,
+    )
 
 
 @shared_task
@@ -57,10 +61,20 @@ def check_limit_warnings() -> None:
             continue
 
         warnings = []
-        if usage.conversations_count >= _FREE_LIMITS["conversations"] * _WARNING_THRESHOLD:
-            warnings.append(f"Conversations: {usage.conversations_count}/{_FREE_LIMITS['conversations']}")
-        if usage.documents_count >= _FREE_LIMITS["documents"] * _WARNING_THRESHOLD:
-            warnings.append(f"Documents: {usage.documents_count}/{_FREE_LIMITS['documents']}")
+        if (
+            usage.conversations_count
+            >= _FREE_LIMITS["conversations"] * _WARNING_THRESHOLD
+        ):
+            warnings.append(
+                f"Conversations: {usage.conversations_count}/{_FREE_LIMITS['conversations']}"
+            )
+        if (
+            usage.documents_count
+            >= _FREE_LIMITS["documents"] * _WARNING_THRESHOLD
+        ):
+            warnings.append(
+                f"Documents: {usage.documents_count}/{_FREE_LIMITS['documents']}"
+            )
         if not warnings:
             continue
 
@@ -80,7 +94,11 @@ def check_limit_warnings() -> None:
                 fail_silently=False,
             )
         except Exception:
-            logger.exception("Limit warning email failed for company %s", company.pk)
+            logger.exception(
+                "Limit warning email failed for company %s", company.pk
+            )
 
-        MonthlyUsage.objects.filter(pk=usage.pk).update(limit_warning_sent=True)
+        MonthlyUsage.objects.filter(pk=usage.pk).update(
+            limit_warning_sent=True
+        )
         logger.info("Limit warning sent for company %s", company.name)

@@ -22,7 +22,9 @@ class KnowledgeChunkInline(TabularInline):
 
     @display(description="Content")
     def content_preview(self, obj):
-        return obj.content[:300] + "…" if len(obj.content) > 300 else obj.content
+        return (
+            obj.content[:300] + "…" if len(obj.content) > 300 else obj.content
+        )
 
 
 @admin.register(KnowledgeDocument)
@@ -112,7 +114,13 @@ class KnowledgeDocumentAdmin(ModelAdmin):
                 count += 1
             except Exception:
                 doc.status = KnowledgeDocument.Status.FAILED
-                doc.error_message = "Could not enqueue task. Is the broker running?"
-                doc.save(update_fields=["status", "error_message", "updated_at"])
+                doc.error_message = (
+                    "Could not enqueue task. Is the broker running?"
+                )
+                doc.save(
+                    update_fields=["status", "error_message", "updated_at"]
+                )
 
-        self.message_user(request, f"{count} document(s) queued for reprocessing.")
+        self.message_user(
+            request, f"{count} document(s) queued for reprocessing."
+        )

@@ -76,7 +76,9 @@ class NotificationLog(models.Model):
         on_delete=models.CASCADE,
         related_name="notification_logs",
     )
-    notification_type = models.CharField(max_length=20, choices=Type.choices, db_index=True)
+    notification_type = models.CharField(
+        max_length=20, choices=Type.choices, db_index=True
+    )
     session = models.ForeignKey(
         ChatSession,
         on_delete=models.SET_NULL,

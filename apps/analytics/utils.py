@@ -40,7 +40,11 @@ def cluster_by_cosine_similarity(messages: list[dict]) -> list[list[int]]:
             continue
         # Similarity of every unassigned message against message i.
         sims = normalised @ normalised[i]  # shape (n,)
-        cluster = [j for j in range(len(messages)) if not assigned[j] and sims[j] >= _SIM_THRESHOLD]
+        cluster = [
+            j
+            for j in range(len(messages))
+            if not assigned[j] and sims[j] >= _SIM_THRESHOLD
+        ]
         for j in cluster:
             assigned[j] = True
         clusters.append(cluster)

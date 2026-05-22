@@ -8,7 +8,11 @@ from apps.accounts.models import CompanyProfile
 from apps.accounts.serializers import WidgetConfigSerializer
 
 from .models import ChatSession
-from .serializers import AskSerializer, ChatMessageSerializer, ChatSessionSerializer
+from .serializers import (
+    AskSerializer,
+    ChatMessageSerializer,
+    ChatSessionSerializer,
+)
 from .services import (
     check_session_creation_allowed,
     handle_ask,

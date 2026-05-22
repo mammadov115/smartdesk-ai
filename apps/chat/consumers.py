@@ -55,10 +55,16 @@ class CustomerConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        logger.debug("CustomerConsumer connected: session=%s user=%s", self.session_id, user.pk)
+        logger.debug(
+            "CustomerConsumer connected: session=%s user=%s",
+            self.session_id,
+            user.pk,
+        )
 
     async def disconnect(self, code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        await self.channel_layer.group_discard(
+            self.group_name, self.channel_name
+        )
 
     async def receive(self, text_data):
         try:
@@ -156,7 +162,11 @@ class OperatorConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add("operators_room", self.channel_name)
         await self.accept()
 
-        logger.debug("OperatorConsumer connected: session=%s operator=%s", self.session_id, user.pk)
+        logger.debug(
+            "OperatorConsumer connected: session=%s operator=%s",
+            self.session_id,
+            user.pk,
+        )
 
         # Notify the customer that an operator has joined
         await self.channel_layer.group_send(
@@ -171,8 +181,12 @@ class OperatorConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
-        await self.channel_layer.group_discard("operators_room", self.channel_name)
+        await self.channel_layer.group_discard(
+            self.group_name, self.channel_name
+        )
+        await self.channel_layer.group_discard(
+            "operators_room", self.channel_name
+        )
 
         # Revert to WAITING so another operator can pick it up
         session = await _get_operator_session(self.session_id)
@@ -268,8 +282,12 @@ def _release_session(session: ChatSession):
 
 
 @database_sync_to_async
-def _save_message(session: ChatSession, role: str, content: str) -> ChatMessage:
-    return ChatMessage.objects.create(session=session, role=role, content=content)
+def _save_message(
+    session: ChatSession, role: str, content: str
+) -> ChatMessage:
+    return ChatMessage.objects.create(
+        session=session, role=role, content=content
+    )
 
 
 def _now_iso() -> str:

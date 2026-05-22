@@ -27,9 +27,19 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
       6. Return {"answer": str, "sources": [{"document_id": int, "title": str}, ...]}.
     """
     # 1. Resolve company chat settings up front so every code path can use them
-    chat_name = getattr(company_profile, "chat_name", "AI Assistant") if company_profile else "AI Assistant"
-    chat_language = getattr(company_profile, "chat_language", "") if company_profile else ""
-    lang_instruction = f"Always respond in {chat_language}." if chat_language else ""
+    chat_name = (
+        getattr(company_profile, "chat_name", "AI Assistant")
+        if company_profile
+        else "AI Assistant"
+    )
+    chat_language = (
+        getattr(company_profile, "chat_language", "")
+        if company_profile
+        else ""
+    )
+    lang_instruction = (
+        f"Always respond in {chat_language}." if chat_language else ""
+    )
 
     # 2. Embed the question
     embeddings = OpenAIEmbeddings(
@@ -58,12 +68,20 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             owner_user.pk,
         )
         if not lang_instruction:
-            return {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True, "embedding": query_vector}
+            return {
+                "answer": FALLBACK_ANSWER,
+                "sources": [],
+                "is_fallback": True,
+                "embedding": query_vector,
+            }
 
         # Translate the fallback message through the LLM so it respects chat_language
         fallback_prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", f"You are a helpful assistant named {chat_name}. {lang_instruction}"),
+                (
+                    "system",
+                    f"You are a helpful assistant named {chat_name}. {lang_instruction}",
+                ),
                 (
                     "human",
                     "You have no relevant information to answer the user's question. "
@@ -77,8 +95,15 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
             model=settings.OPENAI_CHAT_MODEL,
             temperature=0,
         )
-        fallback_answer = (fallback_prompt | fallback_llm | StrOutputParser()).invoke({})
-        return {"answer": fallback_answer, "sources": [], "is_fallback": True, "embedding": query_vector}
+        fallback_answer = (
+            fallback_prompt | fallback_llm | StrOutputParser()
+        ).invoke({})
+        return {
+            "answer": fallback_answer,
+            "sources": [],
+            "is_fallback": True,
+            "embedding": query_vector,
+        }
 
     # 5. Build context string and deduplicated source list
     context = "\n\n".join(chunk.content for chunk in chunks)
@@ -86,7 +111,10 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
     for chunk in chunks:
         if chunk.document_id not in seen:
             seen[chunk.document_id] = chunk.document.title
-    sources = [{"document_id": doc_id, "title": title} for doc_id, title in seen.items()]
+    sources = [
+        {"document_id": doc_id, "title": title}
+        for doc_id, title in seen.items()
+    ]
 
     # 6. Build prompt — inject company chat settings
     system_prompt = (
@@ -112,7 +140,12 @@ def answer_question(question: str, owner_user, company_profile) -> dict:
     chain = prompt | llm | StrOutputParser()
     answer = chain.invoke({"context": context, "question": question})
 
-    return {"answer": answer, "sources": sources, "is_fallback": False, "embedding": query_vector}
+    return {
+        "answer": answer,
+        "sources": sources,
+        "is_fallback": False,
+        "embedding": query_vector,
+    }
 
 
 def escalate_to_operator(session) -> None:
@@ -121,7 +154,9 @@ def escalate_to_operator(session) -> None:
     escalation notification to the operators_room channel group so that
     any connected operator dashboards are alerted in real time.
     """
-    from .models import ChatSession  # local import to avoid circular at module level
+    from .models import (
+        ChatSession,
+    )  # local import to avoid circular at module level
 
     session.status = ChatSession.Status.WAITING
     session.save(update_fields=["status", "updated_at"])
@@ -135,7 +170,11 @@ def escalate_to_operator(session) -> None:
             "owner_email": session.owner.email,
         },
     )
-    logger.info("Session %s escalated to operator (owner=%s)", session.pk, session.owner.email)
+    logger.info(
+        "Session %s escalated to operator (owner=%s)",
+        session.pk,
+        session.owner.email,
+    )
 
     # Queue the operator handoff email notification (deferred import avoids
     # any potential circular dependency at module load time).
@@ -144,7 +183,10 @@ def escalate_to_operator(session) -> None:
 
         notify_operator_handoff.delay(session.pk)
     except Exception:
-        logger.exception("Failed to queue operator handoff notification for session %s", session.pk)
+        logger.exception(
+            "Failed to queue operator handoff notification for session %s",
+            session.pk,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +228,10 @@ def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[n
 
     Returns the assistant ChatMessage instance.
     """
-    from .models import ChatMessage, ChatSession  # local import avoids circular at module level
+    from .models import (
+        ChatMessage,
+        ChatSession,
+    )  # local import avoids circular at module level
 
     user_msg = ChatMessage.objects.create(
         session=session,
@@ -200,7 +245,11 @@ def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[n
         result = answer_question(question, user, company_profile)
     except Exception:
         logger.exception("RAG pipeline error for session %s", session.pk)
-        result = {"answer": FALLBACK_ANSWER, "sources": [], "is_fallback": True}
+        result = {
+            "answer": FALLBACK_ANSWER,
+            "sources": [],
+            "is_fallback": True,
+        }
 
     if result.get("embedding") is not None:
         user_msg.embedding = result["embedding"]
@@ -220,8 +269,13 @@ def handle_ask(session, question: str, user) -> "ChatMessage":  # type: ignore[n
             try:
                 escalate_to_operator(session)
             except Exception:
-                logger.exception("Failed to escalate session %s to operator", session.pk)
+                logger.exception(
+                    "Failed to escalate session %s to operator", session.pk
+                )
         else:
-            logger.debug("Operator escalation skipped for session %s — free plan.", session.pk)
+            logger.debug(
+                "Operator escalation skipped for session %s — free plan.",
+                session.pk,
+            )
 
     return assistant_msg

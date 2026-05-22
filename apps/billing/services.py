@@ -14,8 +14,16 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # ---------------------------------------------------------------------------
 
 PLAN_LIMITS = {
-    CompanyProfile.SubscriptionPlan.FREE: {"conversations": 100, "documents": 3, "operator": False},
-    CompanyProfile.SubscriptionPlan.PAID: {"conversations": None, "documents": None, "operator": True},
+    CompanyProfile.SubscriptionPlan.FREE: {
+        "conversations": 100,
+        "documents": 3,
+        "operator": False,
+    },
+    CompanyProfile.SubscriptionPlan.PAID: {
+        "conversations": None,
+        "documents": None,
+        "operator": True,
+    },
 }
 
 
@@ -147,7 +155,8 @@ def create_checkout_session(user, price_id: str) -> str:
         payment_method_types=["card"],
         line_items=[{"price": price_id, "quantity": 1}],
         mode="subscription",
-        success_url=settings.STRIPE_SUCCESS_URL + "?session_id={CHECKOUT_SESSION_ID}",
+        success_url=settings.STRIPE_SUCCESS_URL
+        + "?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=settings.STRIPE_CANCEL_URL,
     )
     return session.url
@@ -175,7 +184,9 @@ def get_invoices(user) -> list:
     except djstripe.models.Customer.DoesNotExist:
         return []
     result = []
-    for inv in djstripe.models.Invoice.objects.filter(customer=customer).order_by("-created"):
+    for inv in djstripe.models.Invoice.objects.filter(
+        customer=customer
+    ).order_by("-created"):
         sd = inv.stripe_data or {}
         # Stripe stores amounts in the currency's smallest unit (cents for USD).
         amount_paid_cents = sd.get("amount_paid", 0)

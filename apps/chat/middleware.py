@@ -32,10 +32,14 @@ def _get_owner_if_origin_allowed(embed_token: str, origin_host: str):
     from apps.accounts.models import AllowedDomain, CompanyProfile
 
     try:
-        company = CompanyProfile.objects.select_related("owner").get(embed_token=embed_token)
+        company = CompanyProfile.objects.select_related("owner").get(
+            embed_token=embed_token
+        )
     except CompanyProfile.DoesNotExist:
         return None
-    if not AllowedDomain.objects.filter(company=company, domain=origin_host).exists():
+    if not AllowedDomain.objects.filter(
+        company=company, domain=origin_host
+    ).exists():
         return None
     return company.owner
 
@@ -64,7 +68,9 @@ class JWTAuthMiddleware(BaseMiddleware):
             embed_token_list = params.get("embed_token", [])
             if embed_token_list:
                 origin_host = _extract_origin_host(scope)
-                owner = await _get_owner_if_origin_allowed(embed_token_list[0], origin_host)
+                owner = await _get_owner_if_origin_allowed(
+                    embed_token_list[0], origin_host
+                )
                 if owner is None:
                     await send({"type": "websocket.close"})
                     return
@@ -72,6 +78,10 @@ class JWTAuthMiddleware(BaseMiddleware):
                 return await super().__call__(scope, receive, send)
 
             token_list = params.get("token", [])
-            scope["user"] = await _get_user_from_token(token_list[0]) if token_list else AnonymousUser()
+            scope["user"] = (
+                await _get_user_from_token(token_list[0])
+                if token_list
+                else AnonymousUser()
+            )
 
         return await super().__call__(scope, receive, send)

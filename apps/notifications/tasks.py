@@ -23,9 +23,14 @@ def notify_operator_handoff(self, session_id: int) -> None:
     Sends an email to the company if they have opted in.
     """
     try:
-        session = ChatSession.objects.select_related("owner__company_profile").get(pk=session_id)
+        session = ChatSession.objects.select_related(
+            "owner__company_profile"
+        ).get(pk=session_id)
     except ChatSession.DoesNotExist:
-        logger.warning("notify_operator_handoff: session %s not found — skipping.", session_id)
+        logger.warning(
+            "notify_operator_handoff: session %s not found — skipping.",
+            session_id,
+        )
         return
 
     try:
@@ -40,7 +45,9 @@ def notify_operator_handoff(self, session_id: int) -> None:
     try:
         send_operator_handoff_email(company, session)
     except Exception as exc:
-        logger.exception("notify_operator_handoff failed for session %s", session_id)
+        logger.exception(
+            "notify_operator_handoff failed for session %s", session_id
+        )
         raise self.retry(exc=exc)
 
 
@@ -55,9 +62,9 @@ def check_unanswered_conversations() -> None:
     prevents further emails for the same session.
     """
     now = timezone.now()
-    waiting_sessions = ChatSession.objects.filter(status=ChatSession.Status.WAITING).select_related(
-        "owner__company_profile"
-    )
+    waiting_sessions = ChatSession.objects.filter(
+        status=ChatSession.Status.WAITING
+    ).select_related("owner__company_profile")
 
     for session in waiting_sessions:
         try:
@@ -65,12 +72,16 @@ def check_unanswered_conversations() -> None:
         except CompanyProfile.DoesNotExist:
             continue
 
-        prefs, _ = NotificationPreference.objects.get_or_create(company=company)
+        prefs, _ = NotificationPreference.objects.get_or_create(
+            company=company
+        )
         if not prefs.notify_on_unanswered:
             continue
 
         # Check silence threshold
-        threshold = timezone.timedelta(minutes=prefs.unanswered_threshold_minutes)
+        threshold = timezone.timedelta(
+            minutes=prefs.unanswered_threshold_minutes
+        )
         if now - session.updated_at < threshold:
             continue
 
@@ -86,7 +97,10 @@ def check_unanswered_conversations() -> None:
         try:
             send_unanswered_email(company, session)
         except Exception:
-            logger.exception("check_unanswered_conversations: failed to send for session %s", session.pk)
+            logger.exception(
+                "check_unanswered_conversations: failed to send for session %s",
+                session.pk,
+            )
 
 
 @shared_task
@@ -99,4 +113,7 @@ def send_weekly_analytics_summary() -> None:
         try:
             send_weekly_summary_email(company)
         except Exception:
-            logger.exception("send_weekly_analytics_summary: failed for company %s", company.pk)
+            logger.exception(
+                "send_weekly_analytics_summary: failed for company %s",
+                company.pk,
+            )

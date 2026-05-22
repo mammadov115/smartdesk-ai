@@ -29,8 +29,14 @@ def get_conversations(user) -> list[dict]:
     data = []
     for s in sessions:
         duration = None
-        if s.first_message_at and s.last_message_at and s.first_message_at != s.last_message_at:
-            duration = int((s.last_message_at - s.first_message_at).total_seconds())
+        if (
+            s.first_message_at
+            and s.last_message_at
+            and s.first_message_at != s.last_message_at
+        ):
+            duration = int(
+                (s.last_message_at - s.first_message_at).total_seconds()
+            )
         data.append(
             {
                 "id": s.id,
@@ -53,7 +59,11 @@ def get_conversation_detail(user, pk: int) -> dict:
         ChatSession.DoesNotExist: if the session does not belong to *user*.
     """
     session = ChatSession.objects.get(pk=pk, owner=user)
-    messages = list(session.messages.order_by("created_at").values("id", "role", "content", "sources", "created_at"))
+    messages = list(
+        session.messages.order_by("created_at").values(
+            "id", "role", "content", "sources", "created_at"
+        )
+    )
     return {
         "id": session.id,
         "status": session.status,
@@ -82,7 +92,10 @@ def get_most_asked_questions(user, top_n: int = _TOP_CLUSTERS) -> list[dict]:
         return []
 
     clusters = cluster_by_cosine_similarity(msgs)
-    return [{"question": msgs[c[0]]["content"], "count": len(c)} for c in clusters[:top_n]]
+    return [
+        {"question": msgs[c[0]]["content"], "count": len(c)}
+        for c in clusters[:top_n]
+    ]
 
 
 def get_unanswered_questions(user) -> list[dict]:

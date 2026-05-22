@@ -89,17 +89,23 @@ UNFOLD = {
                     {
                         "title": _("Customers"),
                         "icon": "credit_card",
-                        "link": reverse_lazy("admin:djstripe_customer_changelist"),
+                        "link": reverse_lazy(
+                            "admin:djstripe_customer_changelist"
+                        ),
                     },
                     {
                         "title": _("Subscriptions"),
                         "icon": "autorenew",
-                        "link": reverse_lazy("admin:djstripe_subscription_changelist"),
+                        "link": reverse_lazy(
+                            "admin:djstripe_subscription_changelist"
+                        ),
                     },
                     {
                         "title": _("Invoices"),
                         "icon": "receipt_long",
-                        "link": reverse_lazy("admin:djstripe_invoice_changelist"),
+                        "link": reverse_lazy(
+                            "admin:djstripe_invoice_changelist"
+                        ),
                     },
                 ],
             },
@@ -111,7 +117,9 @@ UNFOLD = {
                     {
                         "title": _("Documents"),
                         "icon": "description",
-                        "link": reverse_lazy("admin:knowledge_knowledgedocument_changelist"),
+                        "link": reverse_lazy(
+                            "admin:knowledge_knowledgedocument_changelist"
+                        ),
                     },
                 ],
             },
@@ -123,7 +131,9 @@ UNFOLD = {
                     {
                         "title": _("Sessions"),
                         "icon": "chat",
-                        "link": reverse_lazy("admin:chat_chatsession_changelist"),
+                        "link": reverse_lazy(
+                            "admin:chat_chatsession_changelist"
+                        ),
                     },
                 ],
             },
@@ -135,12 +145,16 @@ UNFOLD = {
                     {
                         "title": _("Preferences"),
                         "icon": "notifications",
-                        "link": reverse_lazy("admin:notifications_notificationpreference_changelist"),
+                        "link": reverse_lazy(
+                            "admin:notifications_notificationpreference_changelist"
+                        ),
                     },
                     {
                         "title": _("Logs"),
                         "icon": "history",
-                        "link": reverse_lazy("admin:notifications_notificationlog_changelist"),
+                        "link": reverse_lazy(
+                            "admin:notifications_notificationlog_changelist"
+                        ),
                     },
                 ],
             },

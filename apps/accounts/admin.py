@@ -29,7 +29,14 @@ class UserAdmin(ModelAdmin):
         (None, {"fields": ("email", "name", "password")}),
         (
             "Status",
-            {"fields": ("is_active", "is_email_verified", "is_staff", "is_superuser")},
+            {
+                "fields": (
+                    "is_active",
+                    "is_email_verified",
+                    "is_staff",
+                    "is_superuser",
+                )
+            },
         ),
         ("Permissions", {"fields": ("groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
@@ -46,10 +53,21 @@ class UserAdmin(ModelAdmin):
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(ModelAdmin):
-    list_display = ("name", "owner", "display_plan", "display_owner_active", "updated_at")
+    list_display = (
+        "name",
+        "owner",
+        "display_plan",
+        "display_owner_active",
+        "updated_at",
+    )
     search_fields = ("name", "owner__email", "contact_email")
     list_filter = (("subscription_plan", ChoicesDropdownFilter),)
-    actions = ["block_companies", "activate_companies", "set_plan_paid", "set_plan_free"]
+    actions = [
+        "block_companies",
+        "activate_companies",
+        "set_plan_paid",
+        "set_plan_free",
+    ]
 
     @display(description="Plan", label=True)
     def display_plan(self, obj):
@@ -59,26 +77,46 @@ class CompanyProfileAdmin(ModelAdmin):
     def display_owner_active(self, obj):
         return obj.owner.is_active
 
-    @unfold_action(description="Block selected companies (deactivate owner accounts)")
+    @unfold_action(
+        description="Block selected companies (deactivate owner accounts)"
+    )
     def block_companies(self, request, queryset):
-        updated = User.objects.filter(pk__in=queryset.values("owner_id"), is_active=True).update(is_active=False)
-        self.message_user(request, f"{updated} company owner(s) blocked.", messages.WARNING)
+        updated = User.objects.filter(
+            pk__in=queryset.values("owner_id"), is_active=True
+        ).update(is_active=False)
+        self.message_user(
+            request, f"{updated} company owner(s) blocked.", messages.WARNING
+        )
 
-    @unfold_action(description="Activate selected companies (re-enable owner accounts)")
+    @unfold_action(
+        description="Activate selected companies (re-enable owner accounts)"
+    )
     def activate_companies(self, request, queryset):
-        updated = User.objects.filter(pk__in=queryset.values("owner_id"), is_active=False).update(is_active=True)
-        self.message_user(request, f"{updated} company owner(s) activated.", messages.SUCCESS)
+        updated = User.objects.filter(
+            pk__in=queryset.values("owner_id"), is_active=False
+        ).update(is_active=True)
+        self.message_user(
+            request, f"{updated} company owner(s) activated.", messages.SUCCESS
+        )
 
     @unfold_action(description="Change plan → Paid")
     def set_plan_paid(self, request, queryset):
-        updated = queryset.filter(subscription_plan=CompanyProfile.SubscriptionPlan.FREE).update(
-            subscription_plan=CompanyProfile.SubscriptionPlan.PAID
+        updated = queryset.filter(
+            subscription_plan=CompanyProfile.SubscriptionPlan.FREE
+        ).update(subscription_plan=CompanyProfile.SubscriptionPlan.PAID)
+        self.message_user(
+            request,
+            f"{updated} company plan(s) upgraded to Paid.",
+            messages.SUCCESS,
         )
-        self.message_user(request, f"{updated} company plan(s) upgraded to Paid.", messages.SUCCESS)
 
     @unfold_action(description="Change plan → Free")
     def set_plan_free(self, request, queryset):
-        updated = queryset.filter(subscription_plan=CompanyProfile.SubscriptionPlan.PAID).update(
-            subscription_plan=CompanyProfile.SubscriptionPlan.FREE
+        updated = queryset.filter(
+            subscription_plan=CompanyProfile.SubscriptionPlan.PAID
+        ).update(subscription_plan=CompanyProfile.SubscriptionPlan.FREE)
+        self.message_user(
+            request,
+            f"{updated} company plan(s) downgraded to Free.",
+            messages.WARNING,
         )
-        self.message_user(request, f"{updated} company plan(s) downgraded to Free.", messages.WARNING)

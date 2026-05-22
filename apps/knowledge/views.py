@@ -26,7 +26,10 @@ class KnowledgeDocumentViewSet(
     def perform_create(self, serializer):
         company = getattr(self.request.user, "company_profile", None)
         if company:
-            from apps.billing.services import check_document_limit, increment_documents
+            from apps.billing.services import (
+                check_document_limit,
+                increment_documents,
+            )
 
             check_document_limit(company)
         document = serializer.save(
@@ -43,5 +46,9 @@ class KnowledgeDocumentViewSet(
                 document.pk,
             )
             document.status = KnowledgeDocument.Status.FAILED
-            document.error_message = "Could not enqueue processing task. Check broker connectivity."
-            document.save(update_fields=["status", "error_message", "updated_at"])
+            document.error_message = (
+                "Could not enqueue processing task. Check broker connectivity."
+            )
+            document.save(
+                update_fields=["status", "error_message", "updated_at"]
+            )

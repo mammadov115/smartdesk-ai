@@ -1,7 +1,9 @@
 from .base import *  # noqa
 
 DEBUG = True
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-development-key-!!!")
+SECRET_KEY = env(
+    "DJANGO_SECRET_KEY", default="django-insecure-development-key-!!!"
+)
 ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
     default=[
@@ -14,7 +16,11 @@ ALLOWED_HOSTS = env.list(
     ],
 )  # nosec B104
 CSRF_TRUSTED_ORIGINS = env.list(
-    "DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://juniper-fester-married.ngrok-free.dev", "http://156.67.24.4:8080"]
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    default=[
+        "https://juniper-fester-married.ngrok-free.dev",
+        "http://156.67.24.4:8080",
+    ],
 )
 
 # Mailpit — catches all outgoing email, Web UI: http://localhost:8025

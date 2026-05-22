@@ -35,7 +35,12 @@ class NotificationPreferenceAdmin(ModelAdmin):
         ),
         (
             "Unanswered Conversations",
-            {"fields": ("notify_on_unanswered", "unanswered_threshold_minutes")},
+            {
+                "fields": (
+                    "notify_on_unanswered",
+                    "unanswered_threshold_minutes",
+                )
+            },
         ),
         (
             "Weekly Summary",
@@ -62,10 +67,22 @@ class NotificationPreferenceAdmin(ModelAdmin):
 
 @admin.register(NotificationLog)
 class NotificationLogAdmin(ModelAdmin):
-    list_display = ["company", "display_type", "session", "recipient_email", "sent_at"]
+    list_display = [
+        "company",
+        "display_type",
+        "session",
+        "recipient_email",
+        "sent_at",
+    ]
     list_filter = [("notification_type", ChoicesDropdownFilter)]
     search_fields = ["company__name", "recipient_email"]
-    readonly_fields = ["company", "notification_type", "session", "recipient_email", "sent_at"]
+    readonly_fields = [
+        "company",
+        "notification_type",
+        "session",
+        "recipient_email",
+        "sent_at",
+    ]
     date_hierarchy = "sent_at"
     ordering = ["-sent_at"]
 

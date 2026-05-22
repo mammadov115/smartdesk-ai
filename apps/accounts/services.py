@@ -15,7 +15,9 @@ from .utils import decode_uid, email_verification_token_generator, encode_uid
 
 
 def _send_mail(subject, message, recipient_email):
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
+    from_email = getattr(
+        settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com"
+    )
     send_mail(
         subject=subject,
         message=message,
@@ -106,16 +108,16 @@ def logout_user(refresh_token: str) -> bool:
 
 @transaction.atomic
 def request_password_reset(email, request=None):
-    user = User.objects.filter(email__iexact=email.strip(), is_active=True).first()
+    user = User.objects.filter(
+        email__iexact=email.strip(), is_active=True
+    ).first()
     if user is None:
         return None
 
     reset_path = reverse("accounts:auth-password-reset")
     reset_url = _build_absolute_url(request, reset_path)
     reset_url = f"{reset_url}?uid={encode_uid(user)}&token={default_token_generator.make_token(user)}"
-    message = (
-        f"We received a password reset request for your account.\n\nReset your password by visiting: {reset_url}\n"
-    )
+    message = f"We received a password reset request for your account.\n\nReset your password by visiting: {reset_url}\n"
     _send_mail("Reset your password", message, user.email)
     return user
 

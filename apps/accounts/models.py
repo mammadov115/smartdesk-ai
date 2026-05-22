@@ -47,16 +47,26 @@ class CompanyProfile(models.Model):
     )
     # AI chat widget settings
     chat_name = models.CharField(max_length=255, default="AI Assistant")
-    greeting_message = models.TextField(default="Hello! How can I help you today?")
+    greeting_message = models.TextField(
+        default="Hello! How can I help you today?"
+    )
     chat_language = models.CharField(
         max_length=100,
         blank=True,
         help_text="Language the AI should respond in (e.g. 'Azerbaijani'). Leave blank for default.",
     )
     # Widget embed settings
-    embed_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    chat_color = models.CharField(max_length=7, default="#0070f3", help_text="Hex colour for the chat widget.")
-    chat_icon = models.ImageField(upload_to="chat-icons/", blank=True, null=True)
+    embed_token = models.UUIDField(
+        default=uuid.uuid4, unique=True, editable=False
+    )
+    chat_color = models.CharField(
+        max_length=7,
+        default="#0070f3",
+        help_text="Hex colour for the chat widget.",
+    )
+    chat_icon = models.ImageField(
+        upload_to="chat-icons/", blank=True, null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

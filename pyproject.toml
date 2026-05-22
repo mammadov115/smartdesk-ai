@@ -45,7 +45,7 @@ exclude_dirs = [".venv", "migrations", "tests"]
 skips = ["B101"]  # assert statements are acceptable outside test code
 
 [tool.ruff]
-line-length = 119
+line-length = 79
 target-version = "py314"
 exclude = ["migrations"]
 
@@ -59,3 +59,6 @@ ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "config"]
+
+[tool.ruff.format]
+line-ending = "auto"

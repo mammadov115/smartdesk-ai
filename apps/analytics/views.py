@@ -61,14 +61,24 @@ class QuestionViewSet(ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     @most_asked_schema
-    @action(detail=False, methods=["get"], url_path="most-asked", url_name="most-asked")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="most-asked",
+        url_name="most-asked",
+    )
     def most_asked(self, request):
         data = get_most_asked_questions(request.user)
         serializer = MostAskedQuestionSerializer(data, many=True)
         return Response(serializer.data)
 
     @unanswered_schema
-    @action(detail=False, methods=["get"], url_path="unanswered", url_name="unanswered")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="unanswered",
+        url_name="unanswered",
+    )
     def unanswered(self, request):
         data = get_unanswered_questions(request.user)
         serializer = UnansweredQuestionSerializer(data, many=True)

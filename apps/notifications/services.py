@@ -19,7 +19,9 @@ _FROM_EMAIL = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
 # ---------------------------------------------------------------------------
 
 
-def _get_or_create_preferences(company: CompanyProfile) -> NotificationPreference:
+def _get_or_create_preferences(
+    company: CompanyProfile,
+) -> NotificationPreference:
     prefs, _ = NotificationPreference.objects.get_or_create(company=company)
     return prefs
 
@@ -39,7 +41,9 @@ def _send(subject: str, body: str, to: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def send_operator_handoff_email(company: CompanyProfile, session: ChatSession) -> None:
+def send_operator_handoff_email(
+    company: CompanyProfile, session: ChatSession
+) -> None:
     """Send an immediate email when a session is escalated to a human operator."""
     prefs = _get_or_create_preferences(company)
     if not prefs.notify_on_operator_handoff:
@@ -58,17 +62,25 @@ def send_operator_handoff_email(company: CompanyProfile, session: ChatSession) -
     try:
         _send(subject, body, recipient)
     except Exception:
-        logger.exception("Operator handoff email failed for session %s", session.pk)
+        logger.exception(
+            "Operator handoff email failed for session %s", session.pk
+        )
     NotificationLog.objects.create(
         company=company,
         notification_type=NotificationLog.Type.OPERATOR_HANDOFF,
         session=session,
         recipient_email=recipient,
     )
-    logger.info("Operator handoff notification logged for session %s → %s", session.pk, recipient)
+    logger.info(
+        "Operator handoff notification logged for session %s → %s",
+        session.pk,
+        recipient,
+    )
 
 
-def send_unanswered_email(company: CompanyProfile, session: ChatSession) -> None:
+def send_unanswered_email(
+    company: CompanyProfile, session: ChatSession
+) -> None:
     """Send an email when a WAITING conversation has had no operator response for too long."""
     prefs = _get_or_create_preferences(company)
     if not prefs.notify_on_unanswered:
@@ -76,7 +88,11 @@ def send_unanswered_email(company: CompanyProfile, session: ChatSession) -> None
 
     recipient = prefs.get_recipient_email()
 
-    last_msg = ChatMessage.objects.filter(session=session, role=ChatMessage.Role.USER).order_by("-created_at").first()
+    last_msg = (
+        ChatMessage.objects.filter(session=session, role=ChatMessage.Role.USER)
+        .order_by("-created_at")
+        .first()
+    )
     question_preview = last_msg.content[:200] if last_msg else "(no message)"
 
     subject = f"[{company.name}] Unanswered conversation — {prefs.unanswered_threshold_minutes} min"
@@ -99,7 +115,11 @@ def send_unanswered_email(company: CompanyProfile, session: ChatSession) -> None
         session=session,
         recipient_email=recipient,
     )
-    logger.info("Unanswered notification logged for session %s → %s", session.pk, recipient)
+    logger.info(
+        "Unanswered notification logged for session %s → %s",
+        session.pk,
+        recipient,
+    )
 
 
 def send_weekly_summary_email(company: CompanyProfile) -> None:
@@ -113,7 +133,8 @@ def send_weekly_summary_email(company: CompanyProfile) -> None:
 
     most_asked_lines = (
         "\n".join(
-            f'  {i + 1}. "{item["question"]}" ({item["count"]} times)' for i, item in enumerate(stats["most_asked"])
+            f'  {i + 1}. "{item["question"]}" ({item["count"]} times)'
+            for i, item in enumerate(stats["most_asked"])
         )
         or "  (not enough data yet)"
     )
@@ -135,14 +156,20 @@ def send_weekly_summary_email(company: CompanyProfile) -> None:
     try:
         _send(subject, body, recipient)
     except Exception:
-        logger.exception("Weekly summary email failed for company %s", company.pk)
+        logger.exception(
+            "Weekly summary email failed for company %s", company.pk
+        )
     NotificationLog.objects.create(
         company=company,
         notification_type=NotificationLog.Type.WEEKLY_SUMMARY,
         session=None,
         recipient_email=recipient,
     )
-    logger.info("Weekly summary notification logged for company %s → %s", company.name, recipient)
+    logger.info(
+        "Weekly summary notification logged for company %s → %s",
+        company.name,
+        recipient,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -154,10 +181,15 @@ def _gather_weekly_stats(company: CompanyProfile) -> dict:
     """Collect last-7-days stats for the weekly summary email."""
     from datetime import timedelta
 
-    from apps.analytics.services import get_most_asked_questions, get_unanswered_questions
+    from apps.analytics.services import (
+        get_most_asked_questions,
+        get_unanswered_questions,
+    )
 
     week_ago = timezone.now() - timedelta(days=7)
-    sessions = ChatSession.objects.filter(owner=company.owner, created_at__gte=week_ago)
+    sessions = ChatSession.objects.filter(
+        owner=company.owner, created_at__gte=week_ago
+    )
     conversation_count = sessions.count()
     message_count = ChatMessage.objects.filter(session__in=sessions).count()
     unanswered = get_unanswered_questions(company.owner)

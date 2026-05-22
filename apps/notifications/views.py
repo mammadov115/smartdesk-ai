@@ -13,7 +13,9 @@ class NotificationPreferenceViewSet(ViewSet):
 
     def _get_prefs(self, user) -> NotificationPreference:
         company = user.company_profile
-        prefs, _ = NotificationPreference.objects.get_or_create(company=company)
+        prefs, _ = NotificationPreference.objects.get_or_create(
+            company=company
+        )
         return prefs
 
     @preference_detail_schema
@@ -25,7 +27,9 @@ class NotificationPreferenceViewSet(ViewSet):
         if request.method == "GET":
             return Response(NotificationPreferenceSerializer(prefs).data)
 
-        serializer = NotificationPreferenceSerializer(prefs, data=request.data, partial=True)
+        serializer = NotificationPreferenceSerializer(
+            prefs, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
